@@ -407,7 +407,12 @@
     "deleteHint": "It stays on record as deleted, with your name and reason, and no longer counts towards spending. You can restore it later.",
     "deleted": "Expense deleted",
     "restore": "Restore for review",
-    "restored": "Expense restored"
+    "restored": "Expense restored",
+    "approveAndPay": "Approve & pay back",
+    "approveAndPayTitle": "Approve and pay {member} {amount}",
+    "approveAndPayHint": "Use this once you've sent the money. It's recorded as approved and paid back in one step.",
+    "approveAndPayConfirm": "Approve and mark {amount} paid",
+    "approvedAndPaid": "Approved and paid back"
   },
   "reviewQueue": {
     "title": "Review",

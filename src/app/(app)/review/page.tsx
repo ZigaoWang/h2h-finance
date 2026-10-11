@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { DuplicateAlert } from "@/components/expense-detail";
-import { DeleteAction, ReviewActions } from "@/components/review-actions";
+import { ApproveAndPayAction, DeleteAction, ReviewActions } from "@/components/review-actions";
 import { ScreenshotThumb } from "@/components/screenshot-thumb";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, Panel } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireAdmin } from "@/lib/auth/dal";
-import { formatDate, formatDateTime, timestamp } from "@/lib/dates";
+import { formatDate, formatDateTime, timestamp, today } from "@/lib/dates";
 import { screenshotMismatches } from "@/lib/expenses/checks";
 import { duplicateFlags, filesFor, listPendingReview } from "@/lib/expenses/queries";
 import { localName } from "@/lib/i18n-names";
@@ -85,6 +85,7 @@ export default async function ReviewPage() {
 
                     <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
                       <ReviewActions id={e.id} compact />
+                      <ApproveAndPayAction id={e.id} member={e.userName} amount={formatMoney(e.amountCents)} today={today()} />
                       <ButtonLink href={`/expenses/${e.id}/edit`} variant="ghost" size="sm">
                         {t("expense.edit")}
                       </ButtonLink>

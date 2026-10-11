@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, HandCoins, ImagePlus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { approveExpenseAction, deleteExpenseAction, rejectExpenseAction, restoreExpenseAction } from "@/app/(app)/expenses/actions";
+import { approveAndPayAction, approveExpenseAction, deleteExpenseAction, rejectExpenseAction, restoreExpenseAction } from "@/app/(app)/expenses/actions";
+import { uploadImage } from "@/components/expense-form/upload";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogActions } from "@/components/ui/dialog";
-import { Field, Textarea } from "@/components/ui/field";
+import { Field, Input, Textarea } from "@/components/ui/field";
 import { useAction } from "@/hooks/use-action";
 import { cn } from "@/lib/cn";
 
@@ -144,5 +145,77 @@ export function RestoreAction({ id }: { id: number }) {
       </Button>
       {restore.error && <Alert>{restore.error}</Alert>}
     </div>
+  );
+}
+
+/** Approve and record the payback in one step, for when the money goes out straight away. */
+export function ApproveAndPayAction({ id, member, amount, today }: { id: number; member: string; amount: string; today: string }) {
+  const t = useTranslations("review");
+  const tr = useTranslations("reimburse");
+  const [open, setOpen] = useState(false);
+  const [paidOn, setPaidOn] = useState(today);
+  const [note, setNote] = useState("");
+  const [proof, setProof] = useState<{ id?: string; uploading: boolean; error?: string } | null>(null);
+  const pay = useAction(approveAndPayAction, { success: t("approvedAndPaid"), onSuccess: () => setOpen(false) });
+
+  return (
+    <>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => {
+          setPaidOn(today);
+          setNote("");
+          setProof(null);
+          pay.clearError();
+          setOpen(true);
+        }}
+      >
+        <HandCoins className="size-3.5" aria-hidden />
+        {t("approveAndPay")}
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)} title={t("approveAndPayTitle", { amount, member })} description={t("approveAndPayHint")}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            pay.execute(id, { paidOn, note, proofFileId: proof?.id ?? "" });
+          }}
+          className="flex flex-col gap-4"
+        >
+          <Field label={tr("paidOn")} htmlFor={`pay-on-${id}`}>
+            <Input id={`pay-on-${id}`} type="date" max={today} value={paidOn} onChange={(e) => setPaidOn(e.target.value)} required />
+          </Field>
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed border-line-strong px-3 py-2.5 text-[13px] text-ink-2 hover:border-faint">
+            <ImagePlus className="size-4 shrink-0" aria-hidden />
+            <span className="flex-1">{proof?.uploading ? tr("reading") : proof?.id ? tr("transferAdded") : tr("addTransfer")}</span>
+            <span className="text-xs text-faint">{tr("optional")}</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setProof({ uploading: true });
+                const result = await uploadImage(file, "transfer");
+                setProof(typeof result === "string" ? { uploading: false, error: result } : { uploading: false, id: result.id });
+              }}
+            />
+          </label>
+          <Field label={tr("note")} htmlFor={`pay-note-${id}`} optional={tr("optional")}>
+            <Textarea id={`pay-note-${id}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} />
+          </Field>
+          {pay.error && <Alert>{pay.error}</Alert>}
+          <DialogActions>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" pending={pay.pending} disabled={proof?.uploading}>
+              {t("approveAndPayConfirm", { amount })}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </>
   );
 }

@@ -3,6 +3,7 @@
 import { requireAdmin, requireUser } from "@/lib/auth/dal";
 import {
   adminUpdateExpense,
+  approveAndPay,
   approveExpense,
   createReimbursement,
   rejectExpense,
@@ -73,4 +74,9 @@ export async function updateReimbursementAction(id: number, input: { paidOn: str
 export async function undoReimbursementAction(id: number, reason: string) {
   const admin = await requireAdmin();
   return mutate(() => undoReimbursement(admin, id, reason));
+}
+
+export async function approveAndPayAction(id: number, input: { paidOn: string; note: string; proofFileId: string }) {
+  const admin = await requireAdmin();
+  return mutate(() => approveAndPay(admin, id, input));
 }

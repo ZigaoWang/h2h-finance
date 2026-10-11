@@ -407,7 +407,12 @@
     "deleteHint": "该记录会连同你的名字和原因保留为已删除，不再计入支出，之后可以恢复。",
     "deleted": "已删除报销",
     "restore": "恢复并重新审核",
-    "restored": "已恢复报销"
+    "restored": "已恢复报销",
+    "approveAndPay": "批准并打款",
+    "approveAndPayTitle": "批准并给 {member} 打款 {amount}",
+    "approveAndPayHint": "转账后使用，将一次性记录为已批准和已报销。",
+    "approveAndPayConfirm": "批准并确认已打款 {amount}",
+    "approvedAndPaid": "已批准并打款"
   },
   "reviewQueue": {
     "title": "审核",

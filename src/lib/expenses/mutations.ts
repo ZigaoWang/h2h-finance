@@ -460,3 +460,13 @@ export function undoReimbursement(admin: SessionUser, id: number, reason: string
     }
   });
 }
+
+/**
+ * For when the money goes out straight away: approves the expense and records its payback.
+ * If recording the payback fails, the expense simply stays approved and can be paid later.
+ */
+export function approveAndPay(admin: SessionUser, id: number, input: { paidOn: string; note: string; proofFileId: string }) {
+  const expense = getForReview(id, "pending");
+  approveExpense(admin, id);
+  return createReimbursement(admin, { userId: expense.userId, expenseIds: [id], ...input });
+}
