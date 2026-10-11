@@ -6,13 +6,11 @@ import { MobileNav, SidebarNav } from "@/components/shell/nav";
 import { Logo } from "@/components/logo";
 import { ButtonLink } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/dal";
-import { countAwaitingPayback } from "@/lib/expenses/queries";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const t = await getTranslations();
   const isAdmin = user.role === "admin";
-  const counts = { reimburse: isAdmin ? countAwaitingPayback() : 0 };
   const logo = <Logo name={t("brand.org")} product={t("brand.product")} />;
 
   return (
@@ -28,7 +26,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </ButtonLink>
         </div>
         <div className="flex-1 overflow-y-auto px-3">
-          <SidebarNav isAdmin={isAdmin} counts={counts} />
+          <SidebarNav isAdmin={isAdmin} />
         </div>
         <div className="border-t border-line p-2">
           <AccountMenu name={user.name} role={t(`roles.${user.role}`)} />
@@ -41,7 +39,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       </header>
 
       <main className="mx-auto w-full max-w-[1080px] px-4 pt-6 pb-28 sm:px-6 lg:px-10 lg:pt-10 lg:pb-16">{children}</main>
-      <MobileNav isAdmin={isAdmin} counts={counts} />
+      <MobileNav isAdmin={isAdmin} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, inArray, like, ne, or, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, like, ne, or, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { notFound } from "next/navigation";
 import type { SessionUser } from "@/lib/auth/dal";
@@ -10,7 +10,6 @@ import {
   events,
   expenses,
   files,
-  reimbursements,
   users,
   type ExpenseStatus,
   type OcrResult,
@@ -64,10 +63,6 @@ function rows(where: SQL | undefined, limit?: number): ExpenseRow[] {
   return limit ? query.limit(limit).all() : query.all();
 }
 
-export function countAwaitingPayback(): number {
-  return db.select({ n: count() }).from(expenses).where(eq(expenses.status, "approved")).get()?.n ?? 0;
-}
-
 export function listOwnExpenses(userId: number, status?: ExpenseStatus): ExpenseRow[] {
   return rows(and(eq(expenses.userId, userId), status ? eq(expenses.status, status) : undefined));
 }
@@ -83,10 +78,6 @@ export function listAllExpenses(filter: { status?: ExpenseStatus; userId?: numbe
       q ? or(like(expenses.description, `%${q}%`), like(expenses.merchant, `%${q}%`)) : undefined,
     ),
   );
-}
-
-export function listApprovedUnpaid(userId: number): ExpenseRow[] {
-  return rows(and(eq(expenses.userId, userId), eq(expenses.status, "approved")));
 }
 
 export type ExpenseFile = { id: string; width: number; height: number; duplicateOfId: string | null; ocr: OcrResult | null };
@@ -196,19 +187,6 @@ export function getExpenseDetail(id: number, viewer: SessionUser) {
     .get();
   if (!expense || (viewer.role !== "admin" && expense.userId !== viewer.id)) notFound();
 
-  const payers = alias(users, "payers");
-  const reimbursement = expense.reimbursementId
-    ? db
-        .select({ id: reimbursements.id, paidOn: reimbursements.paidOn, createdAt: reimbursements.createdAt, payerName: payers.name })
-        .from(reimbursements)
-        .innerJoin(payers, eq(payers.id, reimbursements.paidBy))
-        .where(eq(reimbursements.id, expense.reimbursementId))
-        .get()
-    : undefined;
-  const proof = reimbursement
-    ? db.select({ id: files.id }).from(files).where(eq(files.reimbursementId, reimbursement.id)).get()
-    : undefined;
-
   const history = db
     .select({ action: auditLog.action, createdAt: auditLog.createdAt, actorName: users.name, data: auditLog.data })
     .from(auditLog)
@@ -221,8 +199,6 @@ export function getExpenseDetail(id: number, viewer: SessionUser) {
     expense,
     files: filesFor([id]).get(id) ?? [],
     flags: duplicateFlags([id]).get(id) ?? [],
-    reimbursement,
-    proofFileId: proof?.id,
     history,
   };
 }

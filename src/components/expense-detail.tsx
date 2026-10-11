@@ -17,7 +17,7 @@ import { screenshotMismatches } from "@/lib/expenses/checks";
 export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: SessionUser }) {
   const t = useTranslations("expense");
   const locale = useLocale();
-  const { expense, files, flags, reimbursement, proofFileId, history } = detail;
+  const { expense, files, flags, history } = detail;
   const isAdmin = viewer.role === "admin";
   const isOwner = expense.userId === viewer.id;
   // What was read from the first screenshot: shown as supporting detail, never used for totals.
@@ -58,20 +58,6 @@ export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: 
               {expense.userName}
               <When date={expense.createdAt} />
             </Row>
-            {reimbursement && (
-              <Row label={t("paidBackBy")}>
-                {reimbursement.payerName}
-                <span className="text-muted"> · {formatDate(reimbursement.paidOn, locale)}</span>
-                {proofFileId && (
-                  <>
-                    <span className="text-muted"> · </span>
-                    <a href={`/api/files/${proofFileId}`} target="_blank" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
-                      {t("viewTransfer")}
-                    </a>
-                  </>
-                )}
-              </Row>
-            )}
             {expense.updatedByName && expense.updatedAt && (
               <Row label={t("editedBy")}>
                 {expense.updatedByName}
@@ -106,7 +92,7 @@ export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: 
               <ButtonLink href={`/expenses/${expense.id}/edit`} variant="secondary" size="sm">
                 {t("edit")}
               </ButtonLink>
-              {isAdmin && expense.status !== "reimbursed" && <DeleteAction id={expense.id} />}
+              {isAdmin && <DeleteAction id={expense.id} />}
             </div>
           )}
           {isAdmin && expense.status === "voided" && (
@@ -116,7 +102,7 @@ export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: 
           )}
         </Panel>
 
-        <History history={history} reimbursement={reimbursement} />
+        <History history={history} />
       </div>
 
       <div className="flex flex-col gap-3 lg:order-1">
@@ -242,7 +228,7 @@ function HistoryEntry({ label, reason, changes, at }: { label: string; reason?: 
   );
 }
 
-function History({ history, reimbursement }: { history: Detail["history"]; reimbursement: Detail["reimbursement"] }) {
+function History({ history }: { history: Detail["history"] }) {
   const t = useTranslations("expense.history");
   const entries = history.flatMap((h) => {
     const key = HISTORY_KEYS[h.action];
@@ -257,8 +243,6 @@ function History({ history, reimbursement }: { history: Detail["history"]; reimb
       },
     ];
   });
-  // Paybacks recorded before expenses logged their own still show up.
-  if (reimbursement && !history.some((h) => h.action === "expense.paid")) entries.push({ key: "paid", label: t("paid", { name: reimbursement.payerName }), reason: undefined, changes: undefined, at: reimbursement.createdAt });
   entries.sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (

@@ -24,8 +24,7 @@ export async function POST(request: Request) {
   const user = await getSessionUser();
   if (!user) return fail("unauthorized", 401);
 
-  const kind = new URL(request.url).searchParams.get("kind") === "transfer" ? "transfer" : "receipt";
-  if (kind === "transfer" && user.role !== "admin") return fail("unauthorized", 403);
+  const kind = "receipt";
 
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (declared > MAX_UPLOAD_BYTES + 64 * 1024) return fail("too_large", 413);

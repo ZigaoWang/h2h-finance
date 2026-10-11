@@ -3,9 +3,8 @@ import { once } from "node:events";
 import { PassThrough, Readable } from "node:stream";
 import { ZipArchive } from "archiver";
 import { asc, eq, inArray } from "drizzle-orm";
-import { alias } from "drizzle-orm/sqlite-core";
 import ExcelJS from "exceljs";
-import { auditLog, categories, db, events, expenses, files, reimbursements, users, type ExpenseStatus } from "@/lib/db";
+import { auditLog, categories, db, events, expenses, files, users, type ExpenseStatus } from "@/lib/db";
 import { timestamp } from "@/lib/dates";
 import { readStoredFile } from "@/lib/files";
 import { localName } from "@/lib/i18n-names";
@@ -18,7 +17,6 @@ const COPY = {
   en: {
     summary: "Summary",
     expenses: "Expenses",
-    reimbursements: "Reimbursements",
     audit: "Audit log",
     title: "Heart to Heart · Year-end accounts",
     period: "Period",
@@ -26,7 +24,6 @@ const COPY = {
     budget: "Budget",
     spent: "Spent (approved)",
     remaining: "Remaining",
-    owed: "Approved, not yet paid back",
     byCategory: "By category",
     byEvent: "By event",
     byPerson: "By person",
@@ -43,27 +40,21 @@ const COPY = {
       member: "Submitted by",
       amount: "Amount (¥)",
       status: "Status",
-      reimbursement: "Reimbursement",
-      paidOn: "Paid back on",
       receipts: "Receipts",
       note: "Note / reason",
       expenseIds: "Expenses",
-      paidBy: "Paid by",
-      payee: "Paid to",
-      transfer: "Transfer",
       time: "Time (Beijing)",
       actor: "By",
       action: "Action",
       entity: "Record",
       details: "Details",
     },
-    total: "Total spent (approved and paid back)",
+    total: "Total spent",
     status: { pending: "Recorded", approved: "Recorded", reimbursed: "Paid back", rejected: "Deleted", voided: "Deleted" },
   },
   zh: {
     summary: "汇总",
     expenses: "支出明细",
-    reimbursements: "报销打款",
     audit: "审计日志",
     title: "心连心 · 年终账目",
     period: "期间",
@@ -71,7 +62,6 @@ const COPY = {
     budget: "预算",
     spent: "已支出（已批准）",
     remaining: "剩余",
-    owed: "已批准待打款",
     byCategory: "按类别",
     byEvent: "按活动",
     byPerson: "按成员",
@@ -88,14 +78,9 @@ const COPY = {
       member: "提交人",
       amount: "金额（元）",
       status: "状态",
-      reimbursement: "打款编号",
-      paidOn: "报销日期",
       receipts: "凭证",
       note: "备注 / 原因",
       expenseIds: "支出编号",
-      paidBy: "打款人",
-      payee: "收款人",
-      transfer: "转账凭证",
       time: "时间（北京）",
       actor: "操作人",
       action: "操作",
@@ -120,7 +105,6 @@ function fileName(...parts: (string | number)[]) {
 }
 
 const expenseRef = (id: number) => `E${String(id).padStart(4, "0")}`;
-const reimbursementRef = (id: number) => `R${String(id).padStart(4, "0")}`;
 const toDate = (d: Date) => timestamp(d).slice(0, 10);
 
 function styleHeader(sheet: ExcelJS.Worksheet) {
@@ -145,7 +129,6 @@ function loadYear(year: BudgetYear) {
       member: users.name,
       amountCents: expenses.amountCents,
       status: expenses.status,
-      reimbursementId: expenses.reimbursementId,
       note: expenses.note,
       rejectionReason: expenses.rejectionReason,
       voidReason: expenses.voidReason,
@@ -164,29 +147,6 @@ function loadYear(year: BudgetYear) {
     ? db.select({ id: files.id, expenseId: files.expenseId }).from(files).where(inArray(files.expenseId, expenseIds)).orderBy(asc(files.createdAt)).all()
     : [];
 
-  const reimbursementIds = [...new Set(rows.map((r) => r.reimbursementId).filter((id): id is number => id !== null))];
-  const payers = alias(users, "payers");
-  const paid = reimbursementIds.length
-    ? db
-        .select({
-          id: reimbursements.id,
-          paidOn: reimbursements.paidOn,
-          member: users.name,
-          amountCents: reimbursements.amountCents,
-          payer: payers.name,
-          note: reimbursements.note,
-        })
-        .from(reimbursements)
-        .innerJoin(users, eq(users.id, reimbursements.userId))
-        .innerJoin(payers, eq(payers.id, reimbursements.paidBy))
-        .where(inArray(reimbursements.id, reimbursementIds))
-        .orderBy(asc(reimbursements.paidOn), asc(reimbursements.id))
-        .all()
-    : [];
-  const transfers = reimbursementIds.length
-    ? db.select({ id: files.id, reimbursementId: files.reimbursementId }).from(files).where(inArray(files.reimbursementId, reimbursementIds)).all()
-    : [];
-
   const history = db
     .select({ createdAt: auditLog.createdAt, actor: users.name, action: auditLog.action, entity: auditLog.entity, entityId: auditLog.entityId, data: auditLog.data })
     .from(auditLog)
@@ -194,20 +154,19 @@ function loadYear(year: BudgetYear) {
     .orderBy(asc(auditLog.id))
     .all()
     .filter((h) => {
-      // Expense and reimbursement entries follow their records; setup changes follow the calendar.
+      // Expense entries follow their records; setup changes follow the calendar.
       if (h.entity === "expense") return expenseIdSet.has(Number(h.entityId));
-      if (h.entity === "reimbursement") return reimbursementIds.includes(Number(h.entityId));
       const day = toDate(h.createdAt);
       return day >= year.startsOn && day <= year.endsOn;
     });
 
-  return { rows, receipts, paid, transfers, history };
+  return { rows, receipts, history };
 }
 
-/** Builds the zip: a spreadsheet plus every receipt and transfer screenshot, named to match. */
+/** Builds the zip: a spreadsheet plus every receipt, named to match its row. */
 export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promise<{ name: string; stream: ReadableStream }> {
   const c = COPY[locale];
-  const { rows, receipts, paid, transfers, history } = loadYear(year);
+  const { rows, receipts, history } = loadYear(year);
   const summary = yearSummary(year, { includePeople: true });
   const folder = fileName(`H2H Finance ${year.label}`);
 
@@ -223,12 +182,6 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
       })),
     );
   }
-  const transferPaths = new Map<number, { fileId: string; path: string }>();
-  for (const r of paid) {
-    const file = transfers.find((t) => t.reimbursementId === r.id);
-    if (file) transferPaths.set(r.id, { fileId: file.id, path: `transfers/${fileName(reimbursementRef(r.id), r.paidOn, r.member, (r.amountCents / 100).toFixed(2))}.jpg` });
-  }
-
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "H2H Finance";
   workbook.created = new Date();
@@ -245,7 +198,6 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
     [c.budget, summary.budgetCents],
     [c.spent, summary.spent.cents],
     [c.remaining, summary.remainingCents],
-    [c.owed, summary.owed.cents],
   ] as const) {
     const row = s.addRow([label, cents / 100]);
     row.getCell(2).numFmt = MONEY;
@@ -276,13 +228,10 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
     { header: col.member, key: "member", width: 16 },
     { header: col.amount, key: "amount", width: 14, style: { numFmt: MONEY } },
     { header: col.status, key: "status", width: 14 },
-    { header: col.reimbursement, key: "reimbursement", width: 14 },
-    { header: col.paidOn, key: "paidOn", width: 12 },
     { header: col.receipts, key: "receipts", width: 40 },
     { header: col.note, key: "note", width: 40 },
   ];
   for (const r of rows) {
-    const reimbursement = paid.find((p) => p.id === r.reimbursementId);
     const files = receiptPaths.get(r.id) ?? [];
     const row = e.addRow({
       id: expenseRef(r.id),
@@ -294,8 +243,6 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
       member: r.member,
       amount: r.amountCents / 100,
       status: c.status[r.status],
-      reimbursement: reimbursement ? reimbursementRef(reimbursement.id) : "",
-      paidOn: reimbursement?.paidOn ?? "",
       receipts: files.map((f) => f.path).join("\n"),
       note: [r.note, r.rejectionReason, r.voidReason].filter(Boolean).join("\n"),
     });
@@ -309,33 +256,6 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
   });
   totalRow.font = { bold: true };
   styleHeader(e);
-
-  // Reimbursements
-  const p = workbook.addWorksheet(c.reimbursements);
-  p.columns = [
-    { header: col.reimbursement, key: "id", width: 14 },
-    { header: col.paidOn, key: "paidOn", width: 12 },
-    { header: col.payee, key: "member", width: 16 },
-    { header: col.amount, key: "amount", width: 14, style: { numFmt: MONEY } },
-    { header: col.expenseIds, key: "expenses", width: 30 },
-    { header: col.paidBy, key: "payer", width: 16 },
-    { header: col.transfer, key: "transfer", width: 44 },
-    { header: col.note, key: "note", width: 30 },
-  ];
-  for (const r of paid) {
-    const transfer = transferPaths.get(r.id);
-    const row = p.addRow({
-      id: reimbursementRef(r.id),
-      paidOn: r.paidOn,
-      member: r.member,
-      amount: r.amountCents / 100,
-      expenses: rows.filter((x) => x.reimbursementId === r.id).map((x) => expenseRef(x.id)).join(", "),
-      payer: r.payer,
-      note: r.note ?? "",
-    });
-    if (transfer) row.getCell("transfer").value = { text: transfer.path, hyperlink: transfer.path };
-  }
-  styleHeader(p);
 
   // Audit log
   const a = workbook.addWorksheet(c.audit);
@@ -367,7 +287,7 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
   archive.append(spreadsheet, { name: `${folder}/${folder}.xlsx` });
 
   // One file at a time, waiting for each to be written, so memory stays flat however many receipts there are.
-  const entries = [...[...receiptPaths.values()].flat(), ...transferPaths.values()];
+  const entries = [...receiptPaths.values()].flat();
   void (async () => {
     try {
       for (const f of entries) {

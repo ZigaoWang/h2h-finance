@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray, max, sql, sum } from "drizzle-orm";
+import { and, desc, eq, inArray, max, sql } from "drizzle-orm";
 import { categories, db, events, expenses, users } from "@/lib/db";
 import { today } from "@/lib/dates";
 import type { BudgetYear } from "@/lib/years";
@@ -14,16 +14,6 @@ const tally = sql<number>`count(*)`.mapWith(Number);
 
 function inYear(year: BudgetYear) {
   return and(eq(expenses.yearId, year.id), inArray(expenses.status, COUNTED));
-}
-
-function sumWhere(year: BudgetYear, status: "approved") {
-  return (
-    db
-      .select({ cents: total, count: tally })
-      .from(expenses)
-      .where(and(eq(expenses.yearId, year.id), eq(expenses.status, status)))
-      .get() ?? { cents: 0, count: 0 }
-  );
 }
 
 function months(year: BudgetYear): string[] {
@@ -103,7 +93,6 @@ export function yearSummary(year: BudgetYear, { includePeople }: { includePeople
     lastMonthCents: monthly.get(lastMonth) ?? 0,
     yearProgress,
     remainingCents: year.budgetCents - spent.cents,
-    owed: sumWhere(year, "approved"),
     byCategory,
     byEvent,
     byPerson,
@@ -158,14 +147,3 @@ export function recentTransactions(year: BudgetYear, { publicView, limit }: { pu
     .all();
 }
 
-/** Approved but not yet paid back, per member, across all years. */
-export function owedByMember() {
-  return db
-    .select({ userId: users.id, name: users.name, cents: sum(expenses.amountCents).mapWith(Number), count: tally })
-    .from(expenses)
-    .innerJoin(users, eq(users.id, expenses.userId))
-    .where(eq(expenses.status, "approved"))
-    .groupBy(users.id)
-    .orderBy(desc(sum(expenses.amountCents)))
-    .all();
-}

@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HandCoins, LayoutDashboard, List, Plus, ReceiptText, Settings } from "lucide-react";
+import { LayoutDashboard, List, Plus, ReceiptText, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
 
-type Key = "dashboard" | "expenses" | "reimburse" | "allExpenses" | "admin";
+type Key = "dashboard" | "expenses" | "allExpenses" | "admin";
 type Item = { href: string; key: Key; icon: typeof LayoutDashboard };
 
 const MEMBER: Item[] = [
@@ -15,7 +15,6 @@ const MEMBER: Item[] = [
 ];
 
 const ADMIN: Item[] = [
-  { href: "/reimburse", key: "reimburse", icon: HandCoins },
   { href: "/all-expenses", key: "allExpenses", icon: List },
   { href: "/admin", key: "admin", icon: Settings },
 ];
@@ -25,16 +24,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function Count({ value }: { value: number }) {
-  if (value <= 0) return null;
-  return (
-    <span className="num ml-auto min-w-5 rounded-full bg-ink px-1.5 text-center text-[11px] leading-5 font-semibold text-white">
-      {value > 99 ? "99+" : value}
-    </span>
-  );
-}
-
-function SidebarLink({ item, pathname, count }: { item: Item; pathname: string; count?: number }) {
+function SidebarLink({ item, pathname }: { item: Item; pathname: string }) {
   const t = useTranslations("nav");
   return (
     <Link
@@ -44,14 +34,11 @@ function SidebarLink({ item, pathname, count }: { item: Item; pathname: string; 
     >
       <item.icon className="size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden />
       {t(item.key)}
-      {count !== undefined && <Count value={count} />}
     </Link>
   );
 }
 
-type Counts = { reimburse: number };
-
-export function SidebarNav({ isAdmin, counts }: { isAdmin: boolean; counts: Counts }) {
+export function SidebarNav({ isAdmin }: { isAdmin: boolean }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   return (
@@ -65,12 +52,7 @@ export function SidebarNav({ isAdmin, counts }: { isAdmin: boolean; counts: Coun
         <div className="flex flex-col gap-0.5">
           <p className="mb-1 px-2.5 text-xs font-medium text-faint">{t("adminSection")}</p>
           {ADMIN.map((item) => (
-            <SidebarLink
-              key={item.href}
-              item={item}
-              pathname={pathname}
-              count={item.key === "reimburse" ? counts.reimburse : undefined}
-            />
+            <SidebarLink key={item.href} item={item} pathname={pathname} />
           ))}
         </div>
       )}
@@ -78,16 +60,14 @@ export function SidebarNav({ isAdmin, counts }: { isAdmin: boolean; counts: Coun
   );
 }
 
-export function MobileNav({ isAdmin, counts }: { isAdmin: boolean; counts: Counts }) {
+export function MobileNav({ isAdmin }: { isAdmin: boolean }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   if (pathname === "/expenses/new" || /^\/expenses\/\d+\/edit$/.test(pathname)) return null;
 
-  const left = isAdmin ? [MEMBER[0], ADMIN[1]] : [MEMBER[0]];
-  const right = isAdmin ? [MEMBER[1], ADMIN[0]] : [MEMBER[1]];
-  const tab = (item: Item) => {
-    const count = item.key === "reimburse" ? counts.reimburse : 0;
-    return (
+  const left = isAdmin ? [MEMBER[0], ADMIN[0]] : [MEMBER[0]];
+  const right = isAdmin ? [MEMBER[1], ADMIN[1]] : [MEMBER[1]];
+  const tab = (item: Item) => (
     <Link
       key={item.href}
       href={item.href}
@@ -96,14 +76,8 @@ export function MobileNav({ isAdmin, counts }: { isAdmin: boolean; counts: Count
     >
       <item.icon className="size-[22px]" strokeWidth={1.6} aria-hidden />
       {t(item.key)}
-      {count > 0 && (
-        <span className="num absolute top-1 left-1/2 ml-1.5 min-w-4 rounded-full bg-danger px-1 text-center text-[10px] leading-4 font-semibold text-white">
-          {count > 99 ? "99+" : count}
-        </span>
-      )}
     </Link>
-    );
-  };
+  );
 
   return (
     <nav aria-label={t("label")} className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">

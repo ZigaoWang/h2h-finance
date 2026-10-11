@@ -14,7 +14,6 @@ export type ErrorCode =
   | "last_admin"
   | "overlapping_year"
   | "nothing_selected"
-  | "undo_reimbursement_first"
   | "in_use";
 
 export class AppError extends Error {

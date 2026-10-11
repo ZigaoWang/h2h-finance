@@ -10,7 +10,7 @@ type Figure = { label: string; value: string; hint?: string; tone?: "danger" };
  * The year at a glance: spending against the budget and against how much of the year has gone,
  * then the figures that follow from it.
  */
-export function BudgetOverview({ summary, publicView }: { summary: YearSummary; publicView: boolean }) {
+export function BudgetOverview({ summary }: { summary: YearSummary }) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
   const { budgetCents, spent, remainingCents, yearProgress } = summary;
@@ -31,16 +31,14 @@ export function BudgetOverview({ summary, publicView }: { summary: YearSummary; 
   const count: Figure = { label: t("expenseCount"), value: String(spent.count) };
   const remaining: Figure = { label: t("remaining"), value: formatMoney(remainingCents), tone: over ? "danger" : undefined };
 
-  const figures: Figure[] = publicView
-    ? [{ label: t("budget"), value: formatMoney(budgetCents) }, remaining, count, average, { label: t("largest"), value: formatMoney(summary.largestCents) }, thisMonth]
-    : [
-        remaining,
-        { label: t("owed"), value: formatMoney(summary.owed.cents), hint: t("items", { count: summary.owed.count }) },
-        count,
-        average,
-        { label: t("largest"), value: formatMoney(summary.largestCents) },
-        thisMonth,
-      ];
+  const figures: Figure[] = [
+    { label: t("budget"), value: formatMoney(budgetCents) },
+    remaining,
+    count,
+    average,
+    { label: t("largest"), value: formatMoney(summary.largestCents) },
+    thisMonth,
+  ];
 
   return (
     <Panel className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">

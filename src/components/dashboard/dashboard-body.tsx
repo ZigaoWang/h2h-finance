@@ -2,34 +2,31 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ExpenseList, type ListItem } from "@/components/expense-list";
 import { EmptyState, Panel, Section } from "@/components/ui/card";
-import { formatMoney } from "@/lib/money";
 import type { Transaction, YearSummary } from "@/lib/stats";
 import { BudgetOverview } from "./budget-overview";
 import { Breakdown } from "./breakdown";
 import { MonthlyChart } from "./monthly-chart";
 
-type Owed = { userId: number; name: string; cents: number; count: number };
-
-/** The shared dashboard. The public page passes no `owed` and gets no names. */
+/** The shared dashboard. The public view leaves out people. */
 export function DashboardBody({
   summary,
   transactions,
-  owed,
+  publicView,
   linkFor,
   viewAll,
 }: {
   summary: YearSummary;
   transactions: Transaction[];
-  owed?: Owed[];
+  publicView?: boolean;
   linkFor?: (item: ListItem) => string | undefined;
   viewAll?: string;
 }) {
   const t = useTranslations("dashboard");
-  const isPublic = !owed;
+  const isPublic = !!publicView;
 
   return (
     <div className="flex flex-col gap-10">
-      <BudgetOverview summary={summary} publicView={isPublic} />
+      <BudgetOverview summary={summary} />
 
       <div className={isPublic ? "grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6" : "grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6 xl:grid-cols-3"}>
         <Breakdown title={t("byCategory")} slices={summary.byCategory} total={summary.spent.cents} />
@@ -37,27 +34,7 @@ export function DashboardBody({
         {!isPublic && <Breakdown title={t("byPerson")} slices={summary.byPerson} total={summary.spent.cents} />}
       </div>
 
-      <div className={isPublic ? "" : "grid grid-cols-1 gap-8 md:gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"}>
-        <MonthlyChart data={summary.monthly} />
-        {owed && (
-          <Section title={t("owedTitle")} description={t("owedHint")}>
-            <Panel>
-              {owed.length ? (
-                <ul className="divide-y divide-line">
-                  {owed.map((o) => (
-                    <li key={o.userId} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
-                      <span className="min-w-0 truncate">{o.name}</span>
-                      <span className="num shrink-0 font-medium">{formatMoney(o.cents)}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="px-4 py-8 text-center text-[13px] text-muted">{t("allPaid")}</p>
-              )}
-            </Panel>
-          </Section>
-        )}
-      </div>
+      <MonthlyChart data={summary.monthly} />
 
       <Section
         title={t("recent")}
