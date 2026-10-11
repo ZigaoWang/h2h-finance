@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Lock } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { DashboardBody } from "@/components/dashboard/dashboard-body";
 import { LocaleSwitch } from "@/components/locale-switch";
@@ -35,7 +36,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <ArrowLeft className="size-3.5" aria-hidden />
             {t("home.mainSite")}
           </a>
-          <LocaleSwitch />
+          <div className="flex items-center gap-4">
+            <Link href={signedIn ? "/dashboard" : "/login"} className="inline-flex items-center gap-1.5 text-[13px] text-muted hover:text-ink">
+              {!signedIn && <Lock className="size-3" aria-hidden />}
+              {signedIn ? t("home.openDashboard") : t("home.signIn")}
+            </Link>
+            <LocaleSwitch />
+          </div>
         </div>
       </div>
       <main className="mx-auto w-full max-w-[1080px] flex-1 px-4 pt-10 pb-16 sm:px-6 md:pt-14">
@@ -69,7 +76,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         )}
       </main>
 
-      <SiteFooter signIn={{ href: signedIn ? "/dashboard" : "/login", label: signedIn ? t("home.openDashboard") : t("home.signIn") }} />
+      <SiteFooter />
     </div>
   );
 }

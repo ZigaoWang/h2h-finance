@@ -437,7 +437,7 @@
   "home": {
     "private": "账目暂未公开。",
     "noYear": "尚未公布预算。",
-    "signIn": "仅限成员 · 登录",
+    "signIn": "成员登录",
     "openDashboard": "进入总览",
     "mainSite": "心连心官网"
   },
@@ -451,9 +451,7 @@
   },
   "footer": {
     "label": "页脚",
-    "club": "心连心 · 包玉刚实验学校",
-    "website": "心连心官网",
-    "source": "源代码",
-    "legal": "© {year} 心连心。本软件为开源软件，采用 <license>GNU Affero 通用公共许可证 v3.0</license> 授权。由 <author>王子高</author> 制作。"
+    "website": "心连心",
+    "license": "基于 <license>AGPL-3.0</license> 开源"
   }
 }

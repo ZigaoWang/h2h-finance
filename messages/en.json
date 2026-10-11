@@ -437,7 +437,7 @@
   "home": {
     "private": "The accounts aren't public at the moment.",
     "noYear": "No budget has been published yet.",
-    "signIn": "Members only · Sign in",
+    "signIn": "Members only",
     "openDashboard": "Open dashboard",
     "mainSite": "Heart to Heart website"
   },
@@ -451,9 +451,7 @@
   },
   "footer": {
     "label": "Footer",
-    "club": "Heart to Heart · YK Pao School",
-    "website": "Heart to Heart website",
-    "source": "Source code",
-    "legal": "© {year} Heart to Heart. This software is open source, licensed under the <license>GNU Affero General Public License v3.0</license>. Made by <author>Zigao Wang</author>."
+    "website": "Heart to Heart",
+    "license": "Open source under <license>AGPL-3.0</license>"
   }
 }
