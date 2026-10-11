@@ -6,6 +6,7 @@ import type { Transaction, YearSummary } from "@/lib/stats";
 import { BudgetOverview } from "./budget-overview";
 import { Breakdown } from "./breakdown";
 import { MonthlyChart } from "./monthly-chart";
+import { SpendingHeatmap } from "./spending-heatmap";
 
 /** The shared dashboard. The public view leaves out people. */
 export function DashboardBody({
@@ -35,6 +36,8 @@ export function DashboardBody({
       </div>
 
       <MonthlyChart data={summary.monthly} />
+
+      <SpendingHeatmap days={summary.daily} startsOn={summary.startsOn} endsOn={summary.endsOn} />
 
       <Section
         title={t("recent")}

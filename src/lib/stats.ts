@@ -75,6 +75,13 @@ export function yearSummary(year: BudgetYear, { includePeople }: { includePeople
       .map((r) => [r.month, r.cents]),
   );
 
+  const daily = db
+    .select({ date: expenses.spentOn, cents: total, count: tally })
+    .from(expenses)
+    .where(inYear(year))
+    .groupBy(expenses.spentOn)
+    .all();
+
   const largest = db.select({ cents: max(expenses.amountCents) }).from(expenses).where(inYear(year)).get()?.cents ?? 0;
   const now = today();
   const thisMonth = now.slice(0, 7);
@@ -97,6 +104,9 @@ export function yearSummary(year: BudgetYear, { includePeople }: { includePeople
     byEvent,
     byPerson,
     monthly: months(year).map((month) => ({ month, cents: monthly.get(month) ?? 0 })),
+    daily,
+    startsOn: year.startsOn,
+    endsOn: year.endsOn,
   };
 }
 

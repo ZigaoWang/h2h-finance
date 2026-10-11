@@ -90,7 +90,14 @@
     "aheadOfPace": "支出快于年度进度。",
     "overBudget": "已超出预算。",
     "viewAll": "查看全部",
-    "today": "今天"
+    "today": "今天",
+    "byDay": "每日支出",
+    "activeDays": "{count, plural, =0 {暂无支出} other {共 # 天有支出}}",
+    "less": "少",
+    "more": "多",
+    "mon": "一",
+    "wed": "三",
+    "fri": "五"
   },
   "common": {
     "save": "保存",
