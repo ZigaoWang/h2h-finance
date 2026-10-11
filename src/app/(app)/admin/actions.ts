@@ -2,6 +2,9 @@
 
 import {
   changeAdminPassword,
+  deleteCategory,
+  deleteEvent,
+  deleteYear,
   changeTeamPassword,
   saveCategory,
   saveEvent,
@@ -63,4 +66,19 @@ export async function changeTeamPasswordAction(password: string) {
 export async function changeAdminPasswordAction(current: string, next: string) {
   const admin = await requireAdmin();
   return mutate(() => changeAdminPassword(admin, current, next));
+}
+
+export async function deleteCategoryAction(id: number) {
+  const admin = await requireAdmin();
+  return mutate(() => deleteCategory(admin, id));
+}
+
+export async function deleteEventAction(id: number) {
+  const admin = await requireAdmin();
+  return mutate(() => deleteEvent(admin, id));
+}
+
+export async function deleteYearAction(id: number) {
+  const admin = await requireAdmin();
+  return mutate(() => deleteYear(admin, id));
 }

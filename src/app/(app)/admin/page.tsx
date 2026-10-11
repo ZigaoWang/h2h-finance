@@ -7,6 +7,8 @@ import { formatMoney } from "@/lib/money";
 import { isPublicPageEnabled } from "@/lib/settings";
 import { yearSummary } from "@/lib/stats";
 import { listYears } from "@/lib/years";
+import { yearExpenseCount } from "@/lib/admin";
+import { YearDelete } from "./year-delete";
 import { AccessSettings } from "./access";
 import { PublicPageToggle } from "./public-page-toggle";
 import { YearDialogButton } from "./year-dialog";
@@ -67,6 +69,7 @@ export default async function AdminBudgetPage() {
                     <YearDialogButton
                       initial={{ id: String(year.id), label: year.label, startsOn: year.startsOn, endsOn: year.endsOn, budget: (year.budgetCents / 100).toFixed(2) }}
                     />
+                    {yearExpenseCount(year.id) === 0 && <YearDelete id={year.id} label={year.label} />}
                     <a
                       href={`/api/export?year=${year.id}`}
                       className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium hover:bg-subtle"

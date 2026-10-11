@@ -12,14 +12,18 @@ import { useAction } from "@/hooks/use-action";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import type { ActionResult } from "@/lib/errors";
-import { archiveCategoryAction, archiveEventAction, saveCategoryAction, saveEventAction } from "./actions";
+import { ConfirmDelete } from "@/components/confirm-delete";
+import { archiveCategoryAction, archiveEventAction, deleteCategoryAction, deleteEventAction, saveCategoryAction, saveEventAction } from "./actions";
 
 type Option = { id: number; nameEn: string; nameZh: string; heldOn?: string | null; archived: boolean; used: number };
 type Kind = "categories" | "events";
 
-const ACTIONS: Record<Kind, { save: (i: Record<string, string>) => Promise<ActionResult>; archive: (id: number, a: boolean) => Promise<ActionResult> }> = {
-  categories: { save: saveCategoryAction, archive: archiveCategoryAction },
-  events: { save: saveEventAction, archive: archiveEventAction },
+const ACTIONS: Record<
+  Kind,
+  { save: (i: Record<string, string>) => Promise<ActionResult>; archive: (id: number, a: boolean) => Promise<ActionResult>; remove: (id: number) => Promise<ActionResult> }
+> = {
+  categories: { save: saveCategoryAction, archive: archiveCategoryAction, remove: deleteCategoryAction },
+  events: { save: saveEventAction, archive: archiveEventAction, remove: deleteEventAction },
 };
 
 /** Categories and events share one manager: bilingual names, archive instead of delete. */
@@ -60,9 +64,13 @@ function OptionRow({ kind, option }: { kind: Kind; option: Option }) {
       </div>
       <div className="flex items-center gap-1">
         {!option.archived && <OptionDialogButton kind={kind} option={option} />}
-        <Button variant="ghost" size="sm" pending={archive.pending} onClick={() => archive.execute(option.id, !option.archived)}>
-          {option.archived ? t("restore") : t("archive")}
-        </Button>
+        {option.used === 0 ? (
+          <ConfirmDelete title={t("deleteTitle", { name: option.nameEn })} action={() => ACTIONS[kind].remove(option.id)} />
+        ) : (
+          <Button variant="ghost" size="sm" pending={archive.pending} onClick={() => archive.execute(option.id, !option.archived)}>
+            {option.archived ? t("restore") : t("archive")}
+          </Button>
+        )}
       </div>
       {archive.error && <Alert className="w-full">{archive.error}</Alert>}
     </li>

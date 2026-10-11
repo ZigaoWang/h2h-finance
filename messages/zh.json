@@ -99,7 +99,9 @@
     "back": "返回",
     "delete": "删除",
     "remove": "移除",
-    "you": "你"
+    "you": "你",
+    "deleted": "已删除",
+    "deleteHint": "尚未被使用，可以彻底删除。"
   },
   "errors": {
     "generic": "出了点问题，请重试。",
@@ -117,7 +119,8 @@
     "name_taken": "成员名单中已有同名成员。",
     "wrong_password": "当前密码不正确。",
     "same_password": "社团密码和管理员密码不能相同。",
-    "undo_reimbursement_first": "这笔报销已打款，修改金额前请先撤销打款。"
+    "undo_reimbursement_first": "这笔报销已打款，修改金额前请先撤销打款。",
+    "in_use": "已被报销使用，只能停用。"
   },
   "admin": {
     "title": "管理",
@@ -145,7 +148,8 @@
       "spent": "已支出",
       "export": "年终材料",
       "empty": "尚无预算年度",
-      "emptyHint": "创建后即可开始提交报销。"
+      "emptyHint": "创建后即可开始提交报销。",
+      "deleteTitle": "删除 {label}？"
     },
     "public": {
       "title": "公开页面",
@@ -193,7 +197,8 @@
       "restore": "恢复",
       "archivedLabel": "已停用",
       "archived": "已停用",
-      "restored": "已恢复"
+      "restored": "已恢复",
+      "deleteTitle": "删除 {name}？"
     },
     "categories": {
       "title": "类别",

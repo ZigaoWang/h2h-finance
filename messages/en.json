@@ -99,7 +99,9 @@
     "back": "Back",
     "delete": "Delete",
     "remove": "Remove",
-    "you": "you"
+    "you": "you",
+    "deleted": "Deleted",
+    "deleteHint": "Nothing uses it yet, so it can be removed completely."
   },
   "errors": {
     "generic": "Something went wrong. Try again.",
@@ -117,7 +119,8 @@
     "name_taken": "Someone on the member list already has that name.",
     "wrong_password": "The current password isn't right.",
     "same_password": "The team and admin passwords must be different.",
-    "undo_reimbursement_first": "This expense has been paid back. Undo the reimbursement before changing the amount."
+    "undo_reimbursement_first": "This expense has been paid back. Undo the reimbursement before changing the amount.",
+    "in_use": "It's already used by expenses, so it can only be archived."
   },
   "admin": {
     "title": "Admin",
@@ -145,7 +148,8 @@
       "spent": "Spent",
       "export": "Year-end pack",
       "empty": "No budget years yet",
-      "emptyHint": "Create one to start accepting expenses."
+      "emptyHint": "Create one to start accepting expenses.",
+      "deleteTitle": "Delete {label}?"
     },
     "public": {
       "title": "Public page",
@@ -193,7 +197,8 @@
       "restore": "Restore",
       "archivedLabel": "Archived",
       "archived": "Archived",
-      "restored": "Restored"
+      "restored": "Restored",
+      "deleteTitle": "Delete {name}?"
     },
     "categories": {
       "title": "Categories",

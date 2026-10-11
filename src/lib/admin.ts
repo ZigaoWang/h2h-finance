@@ -300,3 +300,39 @@ export function activeEvents() {
     .orderBy(sql`${events.heldOn} desc nulls last`, events.id)
     .all();
 }
+
+// Deleting ---------------------------------------------------------------------
+// Only things nothing points at can be deleted; anything in use is archived instead, so old
+// expenses keep their labels.
+
+function usedBy(column: typeof expenses.categoryId | typeof expenses.eventId | typeof expenses.yearId, id: number) {
+  return (db.select({ n: count() }).from(expenses).where(eq(column, id)).get()?.n ?? 0) > 0;
+}
+
+export function deleteCategory(admin: SessionUser, id: number) {
+  if (usedBy(expenses.categoryId, id)) throw new AppError("in_use");
+  db.transaction((tx) => {
+    tx.delete(categories).where(eq(categories.id, id)).run();
+    audit(tx, { actorId: admin.id, action: "category.deleted", entity: "category", entityId: id });
+  });
+}
+
+export function deleteEvent(admin: SessionUser, id: number) {
+  if (usedBy(expenses.eventId, id)) throw new AppError("in_use");
+  db.transaction((tx) => {
+    tx.delete(events).where(eq(events.id, id)).run();
+    audit(tx, { actorId: admin.id, action: "event.deleted", entity: "event", entityId: id });
+  });
+}
+
+export function deleteYear(admin: SessionUser, id: number) {
+  if (usedBy(expenses.yearId, id)) throw new AppError("in_use");
+  db.transaction((tx) => {
+    tx.delete(budgetYears).where(eq(budgetYears.id, id)).run();
+    audit(tx, { actorId: admin.id, action: "year.deleted", entity: "year", entityId: id });
+  });
+}
+
+export function yearExpenseCount(id: number) {
+  return db.select({ n: count() }).from(expenses).where(eq(expenses.yearId, id)).get()?.n ?? 0;
+}
