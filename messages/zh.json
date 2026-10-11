@@ -322,12 +322,10 @@
     "category": "类别",
     "event": "活动",
     "submittedBy": "提交人",
-    "submittedAt": "提交时间",
     "note": "备注",
     "rejectedTitle": "已驳回",
     "voidedTitle": "批准后已作废",
     "awaitingPayback": "已批准，将尽快打款。",
-    "paidBackOn": "已于 {date} 报销",
     "viewTransfer": "查看转账凭证",
     "openOriginal": "查看原图",
     "receiptAlt": "凭证 {number}",
@@ -348,14 +346,19 @@
     },
     "history": {
       "title": "记录",
-      "paid": "已打款",
+      "paid": "{name} 打款",
       "submitted": "{name} 提交",
       "updated": "{name} 修改",
       "approved": "{name} 批准",
       "rejected": "{name} 驳回",
       "voided": "{name} 作废"
     },
-    "transactionId": "交易单号"
+    "transactionId": "交易单号",
+    "approvedBy": "批准人",
+    "rejectedBy": "驳回人",
+    "paidBackBy": "打款人",
+    "editedBy": "最后修改",
+    "deletedBy": "删除人"
   },
   "review": {
     "approve": "批准",

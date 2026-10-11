@@ -47,8 +47,42 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
                 <span className="num break-all">{receiptOcr.transactionId}</span>
               </Row>
             )}
-            <Row label={t("submittedBy")}>{expense.userName}</Row>
-            <Row label={t("submittedAt")}>{formatDateTime(expense.createdAt, locale)}</Row>
+            <Row label={t("submittedBy")}>
+              {expense.userName}
+              <When date={expense.createdAt} />
+            </Row>
+            {expense.reviewerName && expense.reviewedAt && (
+              <Row label={expense.status === "rejected" ? t("rejectedBy") : t("approvedBy")}>
+                {expense.reviewerName}
+                <When date={expense.reviewedAt} />
+              </Row>
+            )}
+            {reimbursement && (
+              <Row label={t("paidBackBy")}>
+                {reimbursement.payerName}
+                <span className="text-muted"> · {formatDate(reimbursement.paidOn, locale)}</span>
+                {proofFileId && (
+                  <>
+                    <span className="text-muted"> · </span>
+                    <a href={`/api/files/${proofFileId}`} target="_blank" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
+                      {t("viewTransfer")}
+                    </a>
+                  </>
+                )}
+              </Row>
+            )}
+            {expense.updatedByName && expense.updatedAt && (
+              <Row label={t("editedBy")}>
+                {expense.updatedByName}
+                <When date={expense.updatedAt} />
+              </Row>
+            )}
+            {expense.voidedByName && expense.voidedAt && (
+              <Row label={t("deletedBy")}>
+                {expense.voidedByName}
+                <When date={expense.voidedAt} />
+              </Row>
+            )}
             {expense.note && <Row label={t("note")}><span className="whitespace-pre-line">{expense.note}</span></Row>}
           </dl>
 
@@ -59,19 +93,6 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
             {expense.status === "voided" && <Alert tone="info" title={t("voidedTitle")}>{expense.voidReason}</Alert>}
             {(isAdmin || isOwner) && flags.length > 0 && <DuplicateAlert flags={flags} isAdmin={isAdmin} />}
             {expense.status === "approved" && <p className="text-sm text-muted">{t("awaitingPayback")}</p>}
-            {reimbursement && (
-              <p className="text-sm text-muted">
-                {t("paidBackOn", { date: formatDate(reimbursement.paidOn, locale) })}
-                {proofFileId && (
-                  <>
-                    {" · "}
-                    <a href={`/api/files/${proofFileId}`} target="_blank" className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
-                      {t("viewTransfer")}
-                    </a>
-                  </>
-                )}
-              </p>
-            )}
           </div>
 
           {isAdmin && expense.status === "pending" && <ReviewActions id={expense.id} className="mt-5" />}
@@ -113,6 +134,11 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
       </div>
     </div>
   );
+}
+
+function When({ date }: { date: Date }) {
+  const locale = useLocale();
+  return <span className="text-muted"> · {formatDateTime(date, locale)}</span>;
 }
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
@@ -170,7 +196,7 @@ function History({ history, reimbursement }: { history: Detail["history"]; reimb
       },
     ];
   });
-  if (reimbursement) entries.push({ key: "paid", label: t("paid"), detail: undefined, at: reimbursement.createdAt });
+  if (reimbursement) entries.push({ key: "paid", label: t("paid", { name: reimbursement.payerName }), detail: undefined, at: reimbursement.createdAt });
   entries.sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (

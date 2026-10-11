@@ -17,6 +17,8 @@ import {
 } from "@/lib/db";
 
 const reviewers = alias(users, "reviewers");
+const editors = alias(users, "editors");
+const deleters = alias(users, "deleters");
 
 const rowFields = {
   id: expenses.id,
@@ -178,19 +180,29 @@ export function getExpenseDetail(id: number, viewer: SessionUser) {
       reimbursementId: expenses.reimbursementId,
       voidedAt: expenses.voidedAt,
       voidReason: expenses.voidReason,
+      voidedByName: deleters.name,
       updatedAt: expenses.updatedAt,
+      updatedByName: editors.name,
     })
     .from(expenses)
     .innerJoin(users, eq(users.id, expenses.userId))
     .innerJoin(categories, eq(categories.id, expenses.categoryId))
     .leftJoin(events, eq(events.id, expenses.eventId))
     .leftJoin(reviewers, eq(reviewers.id, expenses.reviewedBy))
+    .leftJoin(editors, eq(editors.id, expenses.updatedBy))
+    .leftJoin(deleters, eq(deleters.id, expenses.voidedBy))
     .where(eq(expenses.id, id))
     .get();
   if (!expense || (viewer.role !== "admin" && expense.userId !== viewer.id)) notFound();
 
+  const payers = alias(users, "payers");
   const reimbursement = expense.reimbursementId
-    ? db.select().from(reimbursements).where(eq(reimbursements.id, expense.reimbursementId)).get()
+    ? db
+        .select({ id: reimbursements.id, paidOn: reimbursements.paidOn, createdAt: reimbursements.createdAt, payerName: payers.name })
+        .from(reimbursements)
+        .innerJoin(payers, eq(payers.id, reimbursements.paidBy))
+        .where(eq(reimbursements.id, expense.reimbursementId))
+        .get()
     : undefined;
   const proof = reimbursement
     ? db.select({ id: files.id }).from(files).where(eq(files.reimbursementId, reimbursement.id)).get()

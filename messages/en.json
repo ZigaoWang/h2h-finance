@@ -322,12 +322,10 @@
     "category": "Category",
     "event": "Event",
     "submittedBy": "Submitted by",
-    "submittedAt": "Submitted",
     "note": "Private note",
     "rejectedTitle": "Rejected",
     "voidedTitle": "Voided after approval",
     "awaitingPayback": "Approved. You'll be paid back soon.",
-    "paidBackOn": "Paid back on {date}",
     "viewTransfer": "View transfer",
     "openOriginal": "Open full size",
     "receiptAlt": "Receipt {number}",
@@ -348,14 +346,19 @@
     },
     "history": {
       "title": "History",
-      "paid": "Paid back",
+      "paid": "Paid back by {name}",
       "submitted": "Submitted by {name}",
       "updated": "Edited by {name}",
       "approved": "Approved by {name}",
       "rejected": "Rejected by {name}",
       "voided": "Voided by {name}"
     },
-    "transactionId": "Transaction no."
+    "transactionId": "Transaction no.",
+    "approvedBy": "Approved by",
+    "rejectedBy": "Rejected by",
+    "paidBackBy": "Paid back by",
+    "editedBy": "Last edited by",
+    "deletedBy": "Deleted by"
   },
   "review": {
     "approve": "Approve",
