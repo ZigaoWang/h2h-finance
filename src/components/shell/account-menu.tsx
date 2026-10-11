@@ -64,6 +64,11 @@ export function AccountMenu({ name, role, compact }: { name: string; role: strin
               <p className="truncate text-xs text-muted">{role}</p>
             </div>
           )}
+          {compact && (
+            <a href="/" target="_blank" className="flex items-center gap-2 border-b border-line px-2.5 py-2 text-[13px] text-ink-2 hover:text-ink">
+              {t("publicPage")} ↗
+            </a>
+          )}
           <div className="flex items-center justify-between px-2.5 py-2">
             <span className="text-[13px] text-muted">{t("language")}</span>
             <LocaleSwitch />

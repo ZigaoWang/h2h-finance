@@ -48,7 +48,8 @@
     "language": "Language",
     "signOut": "Sign out",
     "adminSection": "Admin",
-    "allExpenses": "All expenses"
+    "allExpenses": "All expenses",
+    "publicPage": "Public page"
   },
   "status": {
     "approved": "Recorded",

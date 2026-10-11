@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, List, Plus, ReceiptText, Settings } from "lucide-react";
+import { ArrowUpRight, Globe, LayoutDashboard, List, Plus, ReceiptText, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
 
@@ -48,6 +48,15 @@ export function SidebarNav({ isAdmin }: { isAdmin: boolean }) {
           <SidebarLink key={item.href} item={item} pathname={pathname} />
         ))}
       </div>
+      <a
+        href="/"
+        target="_blank"
+        className="flex h-8 items-center gap-2.5 rounded-md px-2.5 text-sm text-ink-2 transition-colors hover:bg-black/[0.04] hover:text-ink"
+      >
+        <Globe className="size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden />
+        {t("publicPage")}
+        <ArrowUpRight className="ml-auto size-3.5 text-faint" aria-hidden />
+      </a>
       {isAdmin && (
         <div className="flex flex-col gap-0.5">
           <p className="mb-1 px-2.5 text-xs font-medium text-faint">{t("adminSection")}</p>

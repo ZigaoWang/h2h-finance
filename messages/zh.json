@@ -48,7 +48,8 @@
     "language": "语言",
     "signOut": "退出登录",
     "adminSection": "管理",
-    "allExpenses": "全部报销"
+    "allExpenses": "全部报销",
+    "publicPage": "公开页面"
   },
   "status": {
     "approved": "已记录",
