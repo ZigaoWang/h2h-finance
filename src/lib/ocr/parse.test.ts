@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkTransactionId, combineReadings, normalizeLine, parseReceiptText, textToLines, type OcrLine } from "./parse";
+import { checkTransactionId, combineReadings, dateInTransactionId, normalizeLine, parseReceiptText, textToLines, type OcrLine } from "./parse";
 
 describe("normalizeLine", () => {
   it("joins Chinese characters that OCR split apart", () => {
@@ -248,4 +248,10 @@ it("trusts the date that the transaction number confirms over a majority misread
   const misread = lines([[95, "-45.00"], [88, "支付时间 2026年8月4日 18:52:52"]]);
   const right = lines([[95, "-45.00"], [85, "支付时间 2026年8月14日 18:52:52"], [90, "交易单号 4500000323202608147377866981"]]);
   expect(combineReadings([misread, misread, right])).toMatchObject({ spentOn: "2026-08-14", transactionId: "4500000323202608147377866981" });
+});
+
+it("finds the payment date inside WeChat and Alipay transaction numbers", () => {
+  expect(dateInTransactionId("4200003236202608235658314298")).toBe("2026-08-23");
+  expect(dateInTransactionId("2026091322001164071453199993")).toBe("2026-09-13");
+  expect(dateInTransactionId("12345")).toBeUndefined();
 });

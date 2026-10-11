@@ -358,7 +358,12 @@
     "rejectedBy": "驳回人",
     "paidBackBy": "打款人",
     "editedBy": "最后修改",
-    "deletedBy": "删除人"
+    "deletedBy": "删除人",
+    "mismatch": {
+      "title": "与截图不一致",
+      "amount": "截图显示金额为 {amount}。",
+      "date": "截图显示付款日期为 {date}。"
+    }
   },
   "review": {
     "approve": "批准",

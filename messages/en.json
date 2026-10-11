@@ -358,7 +358,12 @@
     "rejectedBy": "Rejected by",
     "paidBackBy": "Paid back by",
     "editedBy": "Last edited by",
-    "deletedBy": "Deleted by"
+    "deletedBy": "Deleted by",
+    "mismatch": {
+      "title": "Doesn't match the screenshot",
+      "amount": "The screenshot shows {amount}.",
+      "date": "The screenshot shows it was paid on {date}."
+    }
   },
   "review": {
     "approve": "Approve",

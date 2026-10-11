@@ -258,3 +258,12 @@ export function textToLines(text: string): OcrLine[] {
 export function parseReceiptText(text: string): OcrResult {
   return combineReadings([textToLines(text)]);
 }
+
+/** The payment date inside a WeChat or Alipay transaction number: Alipay starts with it, WeChat has it at the eleventh digit. */
+export function dateInTransactionId(transactionId: string): string | undefined {
+  if (!/^\d{28}$/.test(transactionId)) return undefined;
+  const compact = transactionId.startsWith("20") ? transactionId.slice(0, 8) : transactionId.slice(10, 18);
+  const iso = `${compact.slice(0, 4)}-${compact.slice(4, 6)}-${compact.slice(6, 8)}`;
+  const date = new Date(`${iso}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(iso) ? iso : undefined;
+}

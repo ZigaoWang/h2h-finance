@@ -11,6 +11,7 @@ import { formatDate, formatDateTime } from "@/lib/dates";
 import type { DuplicateFlag, ExpenseDetail as Detail } from "@/lib/expenses/queries";
 import { localName } from "@/lib/i18n-names";
 import { formatMoney } from "@/lib/money";
+import { dateInTransactionId } from "@/lib/ocr/parse";
 
 /** One expense with its proof. Used on the detail page and in the review queue. */
 export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail; viewer: SessionUser; inQueue?: boolean }) {
@@ -21,6 +22,14 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
   const isOwner = expense.userId === viewer.id;
   // What was read from the first screenshot: shown as supporting detail, never used for totals.
   const receiptOcr = files[0]?.ocr;
+  // Details that disagree with the screenshot are worth a second look before approving or paying.
+  const screenshotDate = (receiptOcr?.transactionId && dateInTransactionId(receiptOcr.transactionId)) || receiptOcr?.spentOn;
+  const mismatches = [
+    receiptOcr?.amountCents && receiptOcr.amountCents !== expense.amountCents
+      ? t("mismatch.amount", { amount: formatMoney(receiptOcr.amountCents) })
+      : null,
+    screenshotDate && screenshotDate !== expense.spentOn ? t("mismatch.date", { date: formatDate(screenshotDate, locale) }) : null,
+  ].filter((m): m is string => !!m);
 
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
@@ -92,6 +101,15 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
             )}
             {expense.status === "voided" && <Alert tone="info" title={t("voidedTitle")}>{expense.voidReason}</Alert>}
             {(isAdmin || isOwner) && flags.length > 0 && <DuplicateAlert flags={flags} isAdmin={isAdmin} />}
+            {(isAdmin || isOwner) && mismatches.length > 0 && expense.status !== "voided" && (
+              <Alert tone="warning" title={t("mismatch.title")}>
+                <ul className="flex flex-col gap-0.5">
+                  {mismatches.map((m) => (
+                    <li key={m}>{m}</li>
+                  ))}
+                </ul>
+              </Alert>
+            )}
             {expense.status === "approved" && <p className="text-sm text-muted">{t("awaitingPayback")}</p>}
           </div>
 
