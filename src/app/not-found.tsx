@@ -6,9 +6,9 @@ export default async function NotFound() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
       <p className="num text-sm font-medium text-muted">404</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <h1 className="mt-2 text-[22px] font-semibold tracking-tight">{t("title")}</h1>
       <p className="mt-2 max-w-sm text-sm text-muted">{t("description")}</p>
-      <ButtonLink href="/" className="mt-6">
+      <ButtonLink href="/dashboard" className="mt-6">
         {t("home")}
       </ButtonLink>
     </main>
