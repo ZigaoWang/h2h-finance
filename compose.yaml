@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     env_file: .env
     ports:
-      - "127.0.0.1:3000:3000"
+      # Only reachable through the reverse proxy on the same machine.
+      - "127.0.0.1:${HOST_PORT:-3000}:3000"
     volumes:
       - ./data:/data
