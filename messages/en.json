@@ -56,7 +56,7 @@
     "approved": "Approved",
     "reimbursed": "Paid back",
     "rejected": "Rejected",
-    "voided": "Voided"
+    "voided": "Deleted"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -327,18 +327,18 @@
     "submittedBy": "Submitted by",
     "note": "Private note",
     "rejectedTitle": "Rejected",
-    "voidedTitle": "Voided after approval",
+    "voidedTitle": "Deleted",
     "awaitingPayback": "Approved. You'll be paid back soon.",
     "viewTransfer": "View transfer",
     "openOriginal": "Open full size",
     "receiptAlt": "Receipt {number}",
     "edit": "Edit",
     "fixAndResubmit": "Fix and resubmit",
-    "withdraw": "Withdraw",
+    "withdraw": "Delete",
     "keep": "Keep it",
-    "withdrawTitle": "Withdraw this expense?",
-    "withdrawHint": "It will be removed before anyone reviews it. You can submit it again later.",
-    "withdrawn": "Expense withdrawn",
+    "withdrawTitle": "Delete this expense?",
+    "withdrawHint": "It hasn't been reviewed yet, so it will be removed. You can submit it again later.",
+    "withdrawn": "Expense deleted",
     "duplicates": {
       "title": "Possible double claim",
       "exact": "The same screenshot is attached to <ref>#{id}</ref>.",
@@ -354,7 +354,8 @@
       "updated": "Edited by {name}",
       "approved": "Approved by {name}",
       "rejected": "Rejected by {name}",
-      "voided": "Voided by {name}"
+      "voided": "Deleted by {name}",
+      "restored": "Restored by {name}"
     },
     "transactionId": "Transaction no.",
     "approvedBy": "Approved by",
@@ -377,7 +378,6 @@
     "cancel": "Cancel",
     "approved": "Approved",
     "rejected": "Rejected",
-    "voided": "Voided",
     "rejectTitle": "Reject this expense",
     "rejectHint": "The member sees this reason and can fix the expense and resubmit it.",
     "reason": "Reason",
@@ -387,9 +387,12 @@
       "duplicate": "Already submitted",
       "wrongAmount": "Amount doesn't match the screenshot"
     },
-    "void": "Void",
-    "voidTitle": "Void this approved expense",
-    "voidHint": "It stays on record with your reason, but no longer counts towards spending. Use this only to correct a mistake."
+    "delete": "Delete",
+    "deleteTitle": "Delete this expense",
+    "deleteHint": "It stays on record as deleted, with your name and reason, and no longer counts towards spending. You can restore it later.",
+    "deleted": "Expense deleted",
+    "restore": "Restore for review",
+    "restored": "Expense restored"
   },
   "reviewQueue": {
     "title": "Review",

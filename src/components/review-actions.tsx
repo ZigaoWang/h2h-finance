@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { approveExpenseAction, rejectExpenseAction, voidExpenseAction } from "@/app/(app)/expenses/actions";
+import { approveExpenseAction, deleteExpenseAction, rejectExpenseAction, restoreExpenseAction } from "@/app/(app)/expenses/actions";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogActions } from "@/components/ui/dialog";
@@ -79,40 +79,53 @@ export function ReviewActions({ id, onDone, className }: { id: number; onDone?: 
   );
 }
 
-/** Corrects a mistaken approval openly. The expense stays visible, struck through, with the reason. */
-export function VoidAction({ id }: { id: number }) {
+/** Deletes an expense in the open: it stays visible as deleted, with who and why. */
+export function DeleteAction({ id }: { id: number }) {
   const t = useTranslations("review");
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const voidIt = useAction(voidExpenseAction, { success: t("voided"), onSuccess: () => setOpen(false) });
+  const remove = useAction(deleteExpenseAction, { success: t("deleted"), onSuccess: () => setOpen(false) });
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={() => setOpen(true)} className="text-danger hover:bg-danger-bg hover:text-danger">
-        {t("void")}
+      <Button variant="ghost" size="sm" onClick={() => { setReason(""); remove.clearError(); setOpen(true); }} className="text-danger hover:bg-danger-bg hover:text-danger">
+        {t("delete")}
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title={t("voidTitle")} description={t("voidHint")}>
+      <Dialog open={open} onClose={() => setOpen(false)} title={t("deleteTitle")} description={t("deleteHint")}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            voidIt.execute(id, reason);
+            remove.execute(id, reason);
           }}
           className="flex flex-col gap-4"
         >
-          <Field label={t("reason")} htmlFor={`void-${id}`}>
-            <Textarea id={`void-${id}`} value={reason} onChange={(e) => setReason(e.target.value)} required maxLength={500} rows={3} autoFocus />
+          <Field label={t("reason")} htmlFor={`delete-${id}`}>
+            <Textarea id={`delete-${id}`} value={reason} onChange={(e) => setReason(e.target.value)} required maxLength={500} rows={3} autoFocus />
           </Field>
-          {voidIt.error && <Alert>{voidIt.error}</Alert>}
+          {remove.error && <Alert>{remove.error}</Alert>}
           <DialogActions>
             <Button variant="secondary" onClick={() => setOpen(false)}>
               {t("cancel")}
             </Button>
-            <Button type="submit" variant="danger" pending={voidIt.pending} disabled={!reason.trim()}>
-              {t("void")}
+            <Button type="submit" variant="danger" pending={remove.pending} disabled={!reason.trim()}>
+              {t("delete")}
             </Button>
           </DialogActions>
         </form>
       </Dialog>
     </>
+  );
+}
+
+export function RestoreAction({ id }: { id: number }) {
+  const t = useTranslations("review");
+  const restore = useAction(restoreExpenseAction, { success: t("restored") });
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <Button variant="secondary" size="sm" pending={restore.pending} onClick={() => restore.execute(id)}>
+        {t("restore")}
+      </Button>
+      {restore.error && <Alert>{restore.error}</Alert>}
+    </div>
   );
 }

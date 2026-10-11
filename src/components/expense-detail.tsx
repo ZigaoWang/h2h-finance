@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { OwnerActions } from "@/components/owner-actions";
-import { ReviewActions, VoidAction } from "@/components/review-actions";
+import { DeleteAction, RestoreAction, ReviewActions } from "@/components/review-actions";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
@@ -125,7 +125,12 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
               <ButtonLink href={`/expenses/${expense.id}/edit`} variant="secondary" size="sm">
                 {t("edit")}
               </ButtonLink>
-              {expense.status === "approved" && <VoidAction id={expense.id} />}
+              {expense.status !== "reimbursed" && <DeleteAction id={expense.id} />}
+            </div>
+          )}
+          {isAdmin && expense.status === "voided" && (
+            <div className="mt-4 border-t border-line pt-3">
+              <RestoreAction id={expense.id} />
             </div>
           )}
         </Panel>
@@ -195,12 +200,13 @@ function DuplicateAlert({ flags, isAdmin }: { flags: DuplicateFlag[]; isAdmin: b
   );
 }
 
-const HISTORY_KEYS: Record<string, "submitted" | "updated" | "approved" | "rejected" | "voided"> = {
+const HISTORY_KEYS: Record<string, "submitted" | "updated" | "approved" | "rejected" | "voided" | "restored"> = {
   "expense.submitted": "submitted",
   "expense.updated": "updated",
   "expense.approved": "approved",
   "expense.rejected": "rejected",
   "expense.voided": "voided",
+  "expense.restored": "restored",
 };
 
 type Names = { en: string; zh: string } | null;

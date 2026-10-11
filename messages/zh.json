@@ -56,7 +56,7 @@
     "approved": "已批准",
     "reimbursed": "已报销",
     "rejected": "已驳回",
-    "voided": "已作废"
+    "voided": "已删除"
   },
   "dashboard": {
     "title": "总览",
@@ -327,18 +327,18 @@
     "submittedBy": "提交人",
     "note": "备注",
     "rejectedTitle": "已驳回",
-    "voidedTitle": "批准后已作废",
+    "voidedTitle": "已删除",
     "awaitingPayback": "已批准，将尽快打款。",
     "viewTransfer": "查看转账凭证",
     "openOriginal": "查看原图",
     "receiptAlt": "凭证 {number}",
     "edit": "编辑",
     "fixAndResubmit": "修改并重新提交",
-    "withdraw": "撤回",
+    "withdraw": "删除",
     "keep": "保留",
-    "withdrawTitle": "撤回这笔报销？",
-    "withdrawHint": "将在审核前删除，之后可以重新提交。",
-    "withdrawn": "已撤回报销",
+    "withdrawTitle": "删除这笔报销？",
+    "withdrawHint": "尚未审核，将直接删除，之后可以重新提交。",
+    "withdrawn": "已删除报销",
     "duplicates": {
       "title": "可能重复报销",
       "exact": "与 <ref>#{id}</ref> 使用了同一张截图。",
@@ -354,7 +354,8 @@
       "updated": "{name} 修改",
       "approved": "{name} 批准",
       "rejected": "{name} 驳回",
-      "voided": "{name} 作废"
+      "voided": "{name} 删除",
+      "restored": "{name} 恢复"
     },
     "transactionId": "交易单号",
     "approvedBy": "批准人",
@@ -377,7 +378,6 @@
     "cancel": "取消",
     "approved": "已批准",
     "rejected": "已驳回",
-    "voided": "已作废",
     "rejectTitle": "驳回这笔报销",
     "rejectHint": "成员会看到驳回原因，并可修改后重新提交。",
     "reason": "原因",
@@ -387,9 +387,12 @@
       "duplicate": "已经提交过",
       "wrongAmount": "金额与截图不符"
     },
-    "void": "作废",
-    "voidTitle": "作废已批准的报销",
-    "voidHint": "该记录会连同原因保留，但不再计入支出。仅用于纠正错误。"
+    "delete": "删除",
+    "deleteTitle": "删除这笔报销",
+    "deleteHint": "该记录会连同你的名字和原因保留为已删除，不再计入支出，之后可以恢复。",
+    "deleted": "已删除报销",
+    "restore": "恢复并重新审核",
+    "restored": "已恢复报销"
   },
   "reviewQueue": {
     "title": "审核",

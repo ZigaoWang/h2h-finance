@@ -297,18 +297,46 @@ export function rejectExpense(admin: SessionUser, id: number, reason: string) {
 }
 
 /**
- * Corrects a mistaken approval in the open: the expense stays on record, marked void with a
- * reason, and drops out of the totals. Expenses already paid back can't be voided.
+ * Deletes an expense in the open: it stays on record, marked deleted with who and why, and drops
+ * out of every total. Paid-back expenses need their reimbursement undone first.
  */
-export function voidExpense(admin: SessionUser, id: number, reason: string) {
+export function deleteExpense(admin: SessionUser, id: number, reason: string) {
   const why = parse(reasonSchema, reason);
-  getForReview(id, "approved");
+  const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
+  if (!expense) throw new AppError("not_found");
+  if (expense.status === "voided") throw new AppError("locked");
+  if (expense.status === "reimbursed") throw new AppError("undo_reimbursement_first");
   db.transaction((tx) => {
     tx.update(expenses)
       .set({ status: "voided", voidedBy: admin.id, voidedAt: new Date(), voidReason: why })
-      .where(and(eq(expenses.id, id), eq(expenses.status, "approved")))
+      .where(eq(expenses.id, id))
       .run();
-    audit(tx, { actorId: admin.id, action: "expense.voided", entity: "expense", entityId: id, data: { reason: why } });
+    audit(tx, { actorId: admin.id, action: "expense.voided", entity: "expense", entityId: id, data: { reason: why, from: expense.status } });
+  });
+}
+
+/** Brings a deleted expense back for review. */
+export function restoreExpense(admin: SessionUser, id: number) {
+  const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
+  if (!expense) throw new AppError("not_found");
+  if (expense.status !== "voided") throw new AppError("locked");
+  assertDate(expense.spentOn);
+  db.transaction((tx) => {
+    tx.update(expenses)
+      .set({
+        status: "pending",
+        reviewedBy: null,
+        reviewedAt: null,
+        rejectionReason: null,
+        voidedBy: null,
+        voidedAt: null,
+        voidReason: null,
+        updatedAt: new Date(),
+        updatedBy: admin.id,
+      })
+      .where(eq(expenses.id, id))
+      .run();
+    audit(tx, { actorId: admin.id, action: "expense.restored", entity: "expense", entityId: id });
   });
 }
 

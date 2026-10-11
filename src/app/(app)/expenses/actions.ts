@@ -7,8 +7,9 @@ import {
   createReimbursement,
   rejectExpense,
   submitExpenses,
+  deleteExpense,
+  restoreExpense,
   updateExpense,
-  voidExpense,
   withdrawExpense,
   type AdminUpdateInput,
   type ReimbursementInput,
@@ -47,9 +48,14 @@ export async function rejectExpenseAction(id: number, reason: string) {
   return mutate(() => rejectExpense(admin, id, reason));
 }
 
-export async function voidExpenseAction(id: number, reason: string) {
+export async function deleteExpenseAction(id: number, reason: string) {
   const admin = await requireAdmin();
-  return mutate(() => voidExpense(admin, id, reason));
+  return mutate(() => deleteExpense(admin, id, reason));
+}
+
+export async function restoreExpenseAction(id: number) {
+  const admin = await requireAdmin();
+  return mutate(() => restoreExpense(admin, id));
 }
 
 export async function createReimbursementAction(input: ReimbursementInput) {

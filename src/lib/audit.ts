@@ -10,6 +10,8 @@ export type AuditAction =
   | "expense.approved"
   | "expense.rejected"
   | "expense.voided"
+  | "expense.restored"
+  | "reimbursement.undone"
   | "reimbursement.created"
   | "member.added"
   | "member.updated"
