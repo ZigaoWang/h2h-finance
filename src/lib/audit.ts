@@ -18,7 +18,8 @@ export type AuditAction =
   | "year.saved"
   | "category.saved"
   | "event.saved"
-  | "settings.updated";
+  | "settings.updated"
+  | "export.downloaded";
 
 export function audit(
   tx: Tx,

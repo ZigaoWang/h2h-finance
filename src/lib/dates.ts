@@ -40,3 +40,20 @@ export function formatDateTime(date: Date, locale: string): string {
     minute: "2-digit",
   }).format(date);
 }
+
+const stampFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
+/** "2026-10-11 18:34:24" in the club's time zone, for spreadsheets and logs. */
+export function timestamp(date: Date): string {
+  const parts = Object.fromEntries(stampFormatter.formatToParts(date).map((p) => [p.type, p.value]));
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+}
