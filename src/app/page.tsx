@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Lock } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { DashboardBody } from "@/components/dashboard/dashboard-body";
 import { LocaleSwitch } from "@/components/locale-switch";
@@ -31,15 +31,20 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     <div className="flex min-h-dvh flex-col">
       {/* This site is part of the club's website; the way back is always in view. */}
       <div className="border-b border-line bg-[#fafafa]">
-        <div className="mx-auto flex h-11 max-w-[1080px] items-center justify-between gap-4 px-4 sm:px-6">
-          <a href="https://h2h.ykps.net" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-2 hover:text-ink">
-            <ArrowLeft className="size-3.5" aria-hidden />
-            {t("home.mainSite")}
+        <div className="mx-auto flex h-11 max-w-[1080px] items-center justify-between gap-3 px-4 sm:px-6">
+          <a href="https://h2h.ykps.net" className="inline-flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-ink-2 hover:text-ink">
+            <ArrowLeft className="size-3.5 shrink-0" aria-hidden />
+            <span className="truncate">{t("home.mainSite")}</span>
           </a>
-          <div className="flex items-center gap-4">
-            <Link href={signedIn ? "/dashboard" : "/login"} className="inline-flex items-center gap-1.5 text-[13px] text-muted hover:text-ink">
-              {!signedIn && <Lock className="size-3" aria-hidden />}
-              {signedIn ? t("home.openDashboard") : t("home.signIn")}
+          <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+            <Link
+              href={signedIn ? "/dashboard" : "/login"}
+              aria-label={signedIn ? t("home.openDashboard") : t("home.signIn")}
+              className="inline-flex items-center gap-1.5 text-[13px] text-muted hover:text-ink"
+            >
+              {signedIn ? <LayoutDashboard className="size-3.5" aria-hidden /> : <Lock className="size-3" aria-hidden />}
+              {/* Icon only on the narrowest phones, so the bar never pushes the page sideways. */}
+              <span className="max-[400px]:sr-only">{signedIn ? t("home.openDashboard") : t("home.signIn")}</span>
             </Link>
             <LocaleSwitch />
           </div>

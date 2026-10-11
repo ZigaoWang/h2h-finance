@@ -78,8 +78,17 @@ export function MonthlyChart({ data, className }: { data: { month: string; cents
             </div>
             <div className="mt-2 flex gap-1 sm:gap-2" aria-hidden>
               {data.map((d, i) => (
-                <span key={d.month} className={cn("flex-1 text-center text-[11px]", d.month === current ? "font-medium text-ink" : "text-muted")}>
-                  {data.length <= 12 || i % 2 === 0 ? fmt(d.month, { month: "short" }) : ""}
+                <span
+                  key={d.month}
+                  className={cn("min-w-0 flex-1 overflow-hidden text-center text-[11px] whitespace-nowrap", d.month === current ? "font-medium text-ink" : "text-muted")}
+                >
+                  {(data.length <= 12 || i % 2 === 0) && (
+                    <>
+                      {/* Single letters on phones, where twelve short names don't fit. */}
+                      <span className="sm:hidden">{fmt(d.month, { month: "narrow" })}</span>
+                      <span className="hidden sm:inline">{fmt(d.month, { month: "short" })}</span>
+                    </>
+                  )}
                 </span>
               ))}
             </div>
