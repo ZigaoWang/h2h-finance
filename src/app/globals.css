@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-canvas: #f7f7f6;
+  --color-surface: #ffffff;
+  --color-subtle: #f3f3f2;
+  --color-line: #e7e6e3;
+  --color-line-strong: #d6d5d1;
+  --color-ink: #1c1b19;
+  --color-ink-2: #44423e;
+  --color-muted: #75736e;
+  --color-faint: #a3a19c;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-brand: #d42a22;
+  --color-brand-ink: #b3231c;
+
+  --color-pending: #9a5b00;
+  --color-pending-bg: #fdf5e4;
+  --color-approved: #1d4fa8;
+  --color-approved-bg: #ecf2fd;
+  --color-paid: #13784a;
+  --color-paid-bg: #e8f5ee;
+  --color-danger: #b42318;
+  --color-danger-bg: #fdeeec;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --shadow-pop: 0 1px 2px rgb(28 27 25 / 0.06), 0 8px 24px rgb(28 27 25 / 0.1);
+
+  --animate-fade-in: fade-in 120ms ease-out;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-[15px] leading-normal text-ink antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ink;
+  }
+
+  ::selection {
+    @apply bg-ink text-white;
+  }
+
+  /* Numbers line up in columns everywhere money is shown. */
+  .num {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  dialog::backdrop {
+    background: rgb(28 27 25 / 0.4);
+  }
 }
