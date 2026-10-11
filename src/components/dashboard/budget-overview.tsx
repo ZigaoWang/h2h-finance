@@ -34,7 +34,9 @@ export function BudgetOverview({ summary, showOwed }: { summary: YearSummary; sh
           />
         </div>
         <p className="mt-2 text-[13px] text-muted">
-          {budgetCents > 0 ? t("budgetUsedShare", { share: percent.format(share) }) : t("noBudget")}
+          {budgetCents > 0
+            ? t("budgetUsedShare", { share: share > 0 && share < 0.01 ? `<${percent.format(0.01)}` : percent.format(share) })
+            : t("noBudget")}
         </p>
       </div>
       <dl className={cn("grid grid-cols-2 border-t border-line", showOwed ? "sm:grid-cols-4" : "sm:grid-cols-3")}>

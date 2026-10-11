@@ -8,7 +8,7 @@ function compact(cents: number, locale: string) {
 }
 
 /** Spending per month across the budget year. Each column shows its exact value on hover or focus. */
-export function MonthlyChart({ data }: { data: { month: string; cents: number }[] }) {
+export function MonthlyChart({ data, className }: { data: { month: string; cents: number }[]; className?: string }) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
   const max = Math.max(...data.map((d) => d.cents), 0);
@@ -20,7 +20,7 @@ export function MonthlyChart({ data }: { data: { month: string; cents: number }[
     );
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader title={t("byMonth")} />
       <div className="px-5 pt-6 pb-4">
         <div className="relative flex h-44 items-end gap-0.5 border-b border-line">

@@ -382,5 +382,15 @@
     "confirm": "Mark {amount} as paid back",
     "permanent": "Reimbursements are permanent and can't be edited afterwards.",
     "done": "Reimbursement recorded"
+  },
+  "transparency": {
+    "title": "Where the money goes",
+    "description": "Heart to Heart's budget and spending, updated as expenses are approved.",
+    "eyebrow": "Open finances",
+    "heading": "Where the money goes",
+    "intro": "Heart to Heart is a student charity at YK Pao School that funds heart surgery for children. Every club expense is recorded with proof of payment and approved by the club lead. This page updates as soon as an expense is approved.",
+    "memberSignIn": "Member sign in",
+    "noYear": "No budget has been published yet.",
+    "footer": "Amounts are in Chinese yuan. Receipts and transfer records are kept for every expense and are available to the school and our sponsors on request. Personal details are never published."
   }
 }
