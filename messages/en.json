@@ -392,5 +392,16 @@
     "memberSignIn": "Member sign in",
     "noYear": "No budget has been published yet.",
     "footer": "Amounts are in Chinese yuan. Receipts and transfer records are kept for every expense and are available to the school and our sponsors on request. Personal details are never published."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "It may have moved, or you may not have access to it.",
+    "home": "Go to dashboard"
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "description": "Nothing was lost. Try again, and if it keeps happening, tell the club lead.",
+    "reference": "Reference: {digest}",
+    "retry": "Try again"
   }
 }
