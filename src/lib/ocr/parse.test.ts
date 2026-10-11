@@ -142,6 +142,10 @@ OPENROUTER, INC
     });
   });
 
+  it("drops a transaction number with a digit missing", () => {
+    expect(parseReceiptText("交易号 202610102200146407143785339").transactionId).toBeUndefined();
+  });
+
   it("leaves fields empty rather than guessing", () => {
     expect(parseReceiptText("a photo of a cat")).toEqual({});
   });

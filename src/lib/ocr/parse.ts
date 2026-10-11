@@ -29,8 +29,12 @@ const DATE = /(20\d{2})\s*[年\-/.]\s*(\d{1,2})\s*[月\-/.]\s*(\d{1,2})/;
 const DATE_LABELS = /(支付时间|付款时间|交易时间|创建时间|下单时间|成交时间|转账时间|Transaction Time|Payment Time|Time)/i;
 
 const TIME = /(?:^|\D)([01]?\d|2[0-3])[:.：](\d{2})(?:[:.：]\d{2})?(?!\d)/;
-// The platform's own number first (WeChat 交易单号, Alipay 交易号), then a shop's order number.
-const TRANSACTION_LABELS = [/^(交易单号|交易号|Transaction (No|ID|Number)\.?)\s*:?\s*/i, /^(订单号|订单编号|Order (No|ID|Number)\.?)\s*:?\s*/i];
+// The platform's own number first (WeChat 交易单号, Alipay 交易号: always 28 digits),
+// then a shop's order number. A number with a missing digit is worse than none.
+const TRANSACTION_LABELS: [RegExp, RegExp][] = [
+  [/^(交易单号|交易号|Transaction (No|ID|Number)\.?)\s*:?\s*/i, /^\d{28}$/],
+  [/^(订单号|订单编号|Order (No|ID|Number)\.?)\s*:?\s*/i, /^\d{16,32}$/],
+];
 
 const MERCHANT_LABELS = /^(商户全称|商户名称|收款方全称|收款方|收款人|商家|店铺名称|店铺|Merchant Name|Merchant|Payee)\s*:?\s*/i;
 // Lines near the amount that are statuses or UI chrome, never a merchant.
@@ -84,13 +88,13 @@ function findTime(lines: string[]): string | undefined {
 }
 
 function findTransactionId(lines: string[]): string | undefined {
-  for (const label of TRANSACTION_LABELS) {
+  for (const [label, valid] of TRANSACTION_LABELS) {
     for (let i = 0; i < lines.length; i++) {
       if (!label.test(lines[i])) continue;
       let digits = lines[i].replace(label, "").replace(/\s+/g, "");
       // Long numbers wrap onto the next line in Alipay.
       if (/^\d{1,6}$/.test(lines[i + 1] ?? "")) digits += lines[i + 1];
-      if (/^\d{12,40}$/.test(digits)) return digits;
+      if (valid.test(digits)) return digits;
     }
   }
   return undefined;
