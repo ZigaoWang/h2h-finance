@@ -15,8 +15,8 @@
     "teamPassword": "Team password",
     "continue": "Continue",
     "whoAreYou": "Who are you?",
-    "pickName": "Pick your name. Your expenses will be filed under it.",
-    "search": "Search names",
+    "pickName": "Find your name. Expenses you submit are filed under it.",
+    "search": "Type your name",
     "noMatch": "No one by that name. Ask the club lead to add you.",
     "admin": "Admin",
     "adminPassword": "Admin password",
@@ -35,10 +35,8 @@
       "name_taken": "That name is already on the list. Pick it above.",
       "too_many_new": "Too many new names today. Ask the club lead to add you."
     },
-    "notListed": "Not on the list? Add your name",
-    "newName": "Your name",
-    "newNameHint": "Use your full name so the club lead recognises you.",
-    "addMe": "Add me and continue"
+    "addName": "Add <b>{name}</b> as a new member",
+    "typeToAdd": "Type your full name to add yourself."
   },
   "nav": {
     "label": "Main",

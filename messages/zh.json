@@ -15,8 +15,8 @@
     "teamPassword": "社团密码",
     "continue": "继续",
     "whoAreYou": "你是谁？",
-    "pickName": "选择你的名字，报销会记在你名下。",
-    "search": "搜索名字",
+    "pickName": "找到你的名字，提交的报销会记在你名下。",
+    "search": "输入你的名字",
     "noMatch": "没有找到这个名字，请联系社长添加。",
     "admin": "管理员",
     "adminPassword": "管理员密码",
@@ -35,10 +35,8 @@
       "name_taken": "名单中已有这个名字，请在上方选择。",
       "too_many_new": "今天新增的名字太多，请联系社长添加。"
     },
-    "notListed": "名单里没有你？添加名字",
-    "newName": "你的名字",
-    "newNameHint": "请填写全名，方便社长识别。",
-    "addMe": "添加并继续"
+    "addName": "添加新成员 <b>{name}</b>",
+    "typeToAdd": "输入你的全名即可添加。"
   },
   "nav": {
     "label": "主导航",

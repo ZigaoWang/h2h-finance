@@ -35,75 +35,81 @@ export function LoginForm() {
 function NameStep({ state, action, pending }: { state: Extract<LoginState, { step: "name" }>; action: (data: FormData) => void; pending: boolean }) {
   const t = useTranslations("login");
   const [selected, setSelected] = useState<number | undefined>(state.selected);
-  const [query, setQuery] = useState("");
-  const [adding, setAdding] = useState(!!state.newName);
+  const [query, setQuery] = useState(state.newName ?? "");
   const chosen = state.names.find((n) => n.id === selected);
   const needsAdminPassword = chosen?.role === "admin" && !state.adminUnlocked;
+
+  const typed = query.trim().replace(/\s+/g, " ");
   const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = typed.toLowerCase();
     return q ? state.names.filter((n) => n.name.toLowerCase().includes(q)) : state.names;
-  }, [query, state.names]);
+  }, [typed, state.names]);
+  // Offer to add the typed name unless it's already on the list.
+  const canAdd = typed.length >= 2 && !state.names.some((n) => n.name.toLowerCase() === typed.toLowerCase());
 
   return (
     <form action={action} className="flex flex-col gap-5">
       <input type="hidden" name="userId" value={selected ?? ""} />
+      <input type="hidden" name="newName" value={typed} />
       <div>
         <h1 className="text-[22px] font-semibold tracking-tight">{t("whoAreYou")}</h1>
         <p className="mt-1.5 text-sm text-muted">{t("pickName")}</p>
       </div>
 
-      {state.names.length > 8 && (
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" aria-hidden />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("search")} aria-label={t("search")} className="pl-9" />
-        </div>
-      )}
-
-      <div role="radiogroup" aria-label={t("whoAreYou")} className="max-h-72 overflow-y-auto rounded-lg border border-line">
-        {shown.map((n) => (
-          <button
-            key={n.id}
-            type="button"
-            role="radio"
-            aria-checked={selected === n.id}
-            onClick={() => {
-              setSelected(n.id);
-              setAdding(false);
+      <div className="overflow-hidden rounded-lg border border-line-strong focus-within:border-ink focus-within:shadow-[0_0_0_3px_rgb(0_0_0/0.08)]">
+        <div className="relative border-b border-line">
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-faint" aria-hidden />
+          <input
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelected(undefined);
             }}
-            className={cn(
-              "flex w-full items-center justify-between gap-3 border-b border-line px-3.5 py-2.5 text-left text-sm last:border-b-0 transition-colors",
-              selected === n.id ? "bg-ink text-white" : "hover:bg-subtle",
-            )}
-          >
-            <span className="truncate font-medium">{n.name}</span>
-            {n.role === "admin" && <span className={cn("text-xs", selected === n.id ? "text-white/60" : "text-faint")}>{t("admin")}</span>}
-          </button>
-        ))}
-        {shown.length === 0 && <p className="px-3.5 py-6 text-center text-[13px] text-muted">{t("noMatch")}</p>}
-      </div>
-
-      {adding ? (
-        <div className="flex flex-col gap-2 rounded-lg border border-line p-3">
-          <Field label={t("newName")} htmlFor="new-name" hint={t("newNameHint")}>
-            <Input id="new-name" name="newName" defaultValue={state.newName} maxLength={80} autoFocus autoComplete="name" />
-          </Field>
-          <Button type="submit" name="intent" value="register" variant="secondary" pending={pending} className="self-start">
-            {t("addMe")}
-          </Button>
+            onKeyDown={(e) => {
+              // Enter picks the only match; it never adds a half-typed name by accident.
+              if (e.key !== "Enter") return;
+              e.preventDefault();
+              if (shown.length === 1) setSelected(shown[0].id);
+            }}
+            placeholder={t("search")}
+            aria-label={t("search")}
+            autoComplete="off"
+            autoFocus
+            className="h-11 w-full bg-transparent pr-3.5 pl-10 text-[15px] placeholder:text-faint focus:outline-none"
+          />
         </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => {
-            setAdding(true);
-            setSelected(undefined);
-          }}
-          className="-mt-2 inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-ink-2 hover:text-ink"
-        >
-          <Plus className="size-3.5" aria-hidden />
-          {t("notListed")}
-        </button>
-      )}
+        <div role="radiogroup" aria-label={t("whoAreYou")} className="max-h-64 overflow-y-auto">
+          {shown.map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              role="radio"
+              aria-checked={selected === n.id}
+              onClick={() => setSelected(n.id)}
+              className={cn(
+                "flex w-full items-center justify-between gap-3 border-b border-line px-3.5 py-2.5 text-left text-sm transition-colors last:border-b-0",
+                selected === n.id ? "bg-ink text-white" : "hover:bg-subtle",
+              )}
+            >
+              <span className="truncate font-medium">{n.name}</span>
+              {n.role === "admin" && <span className={cn("text-xs", selected === n.id ? "text-white/60" : "text-faint")}>{t("admin")}</span>}
+            </button>
+          ))}
+          {canAdd && (
+            <button
+              type="submit"
+              name="intent"
+              value="register"
+              formNoValidate
+              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-sm text-ink-2 hover:bg-subtle"
+            >
+              <Plus className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">{t.rich("addName", { name: typed, b: (chunks) => <span className="font-medium text-ink">{chunks}</span> })}</span>
+            </button>
+          )}
+          {shown.length === 0 && !canAdd && <p className="px-3.5 py-5 text-center text-[13px] text-muted">{t("typeToAdd")}</p>}
+        </div>
+      </div>
 
       {needsAdminPassword && (
         <Field label={t("adminPassword")} htmlFor="admin-password" hint={t("adminPasswordHint")}>
