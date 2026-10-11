@@ -44,8 +44,10 @@ function NameStep({ state, action, pending }: { state: Extract<LoginState, { ste
     const q = typed.toLowerCase();
     return q ? state.names.filter((n) => n.name.toLowerCase().includes(q)) : state.names;
   }, [typed, state.names]);
-  // Offer to add the typed name unless it's already on the list.
-  const canAdd = typed.length >= 2 && !state.names.some((n) => n.name.toLowerCase() === typed.toLowerCase());
+  // Offer to add the typed name once it looks like a full name (or nothing matches), and isn't taken.
+  const looksComplete = /[\u3400-\u9fff]{2,}/.test(typed) || /\S+\s+\S+/.test(typed);
+  const canAdd =
+    typed.length >= 2 && (looksComplete || shown.length === 0) && !state.names.some((n) => n.name.toLowerCase() === typed.toLowerCase());
 
   return (
     <form action={action} className="flex flex-col gap-5">
