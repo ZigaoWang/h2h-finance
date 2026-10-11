@@ -93,6 +93,19 @@ server {
 
 HTTPS is required: the session cookie is marked `Secure` in production.
 
+### Without Docker (pm2)
+
+If the server already runs Node apps with pm2, the app can run the same way. Build on the server, then start the standalone output with the environment file:
+
+```sh
+npm ci && npm run build
+cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
+cd .next/standalone
+pm2 start server.js --name h2h-finance --node-args="--env-file=/path/to/.env" && pm2 save
+```
+
+With `.env` containing `NODE_ENV=production`, `PORT`, `HOSTNAME=127.0.0.1`, `DATA_DIR`, `TZ=Asia/Shanghai` and `AUTH_SECRET`. To update: copy the new code over, run the build and copy steps again, then `pm2 restart h2h-finance`. Migrations run automatically on start.
+
 ### Backups
 
 Everything lives in `data/`: the database (`h2h.db`) and receipts (`files/`). To back up:
