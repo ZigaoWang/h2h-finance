@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, ImagePlus, Plus, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { submitExpensesAction, updateExpenseAction } from "@/app/(app)/expenses/actions";
+import { adminUpdateExpenseAction, submitExpensesAction, updateExpenseAction } from "@/app/(app)/expenses/actions";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -45,6 +45,9 @@ export type ExpenseFormProps = {
   today: string;
   edit?: {
     id: number;
+    // Admins correct details on anyone's expense; the receipts stay exactly as submitted.
+    asAdmin: boolean;
+    resubmit: boolean;
     item: { amountCents: number; merchant: string; spentOn: string; fileIds: string[] };
     categoryId: number | null;
     eventId: number | null;
@@ -214,7 +217,13 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
       onSaved();
     },
   });
-  const action = edit ? save : submit;
+  const adminSave = useAction(adminUpdateExpenseAction, {
+    onSuccess: () => {
+      toast.success(t("updated"));
+      onSaved();
+    },
+  });
+  const action = edit ? (edit.asAdmin ? adminSave : save) : submit;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -225,7 +234,10 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
     }
     const details = { categoryId: categoryId!, eventId: eventId ? Number(eventId) : null, description, note: showNote ? note : "" };
     const toInput = (i: Item) => ({ fileIds: i.photos.map((p) => p.fileId!), amount: i.amount, merchant: i.merchant, spentOn: i.spentOn });
-    if (edit) save.execute(edit.id, { ...details, ...toInput(items[0]) });
+    if (edit?.asAdmin) {
+      const [item] = items;
+      adminSave.execute(edit.id, { ...details, amount: item.amount, merchant: item.merchant, spentOn: item.spentOn });
+    } else if (edit) save.execute(edit.id, { ...details, ...toInput(items[0]) });
     else submit.execute({ ...details, items: items.map(toInput) });
   }
 
@@ -235,7 +247,7 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
         <h2 id={`${formId}-receipts`} className="mb-1 text-[15px] font-semibold">
           {t("receipts")}
         </h2>
-        <p className="mb-4 text-sm text-muted">{edit ? t("receiptsEditHint") : t("receiptsHint")}</p>
+        <p className="mb-4 text-sm text-muted">{edit ? (edit.asAdmin ? t("receiptsAdminHint") : t("receiptsEditHint")) : t("receiptsHint")}</p>
 
         <div className="flex flex-col gap-3">
           {items.map((item, index) => (
@@ -250,6 +262,7 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
               onRemovePhoto={(photoKey) => update(item.key, (i) => ({ photos: i.photos.filter((p) => p.key !== photoKey) }))}
               onAddPhotos={(files) => addPhotos(item.key, files)}
               onPreview={setPreview}
+              photosLocked={edit?.asAdmin}
               today={today}
             />
           ))}
@@ -341,7 +354,7 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
             <p className="text-[13px] text-muted">{uploading ? t("uploading") : t("itemCount", { count: items.length })}</p>
           </div>
           <Button type="submit" size="lg" pending={action.pending} disabled={items.length === 0} className="min-w-32">
-            {edit ? t("save") : t("submit", { count: items.length })}
+            {edit ? (edit.resubmit ? t("save") : t("saveChanges")) : t("submit", { count: items.length })}
           </Button>
           </div>
         </div>
@@ -425,6 +438,7 @@ function ItemCard({
   onRemovePhoto,
   onAddPhotos,
   onPreview,
+  photosLocked,
   today,
 }: {
   item: Item;
@@ -436,6 +450,7 @@ function ItemCard({
   onRemovePhoto: (key: string) => void;
   onAddPhotos: (files: File[]) => void;
   onPreview: (src: string) => void;
+  photosLocked?: boolean;
   today: string;
 }) {
   const t = useTranslations("submit");
@@ -469,7 +484,7 @@ function ItemCard({
                   {t("failed")}
                 </span>
               )}
-              {item.photos.length > 1 && (
+              {item.photos.length > 1 && !photosLocked && (
                 <button
                   type="button"
                   onClick={() => onRemovePhoto(photo.key)}
@@ -481,7 +496,7 @@ function ItemCard({
               )}
             </div>
           ))}
-          {item.photos.length < MAX_PHOTOS_PER_ITEM && (
+          {item.photos.length < MAX_PHOTOS_PER_ITEM && !photosLocked && (
             <>
               <input
                 ref={photoInput}

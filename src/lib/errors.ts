@@ -13,7 +13,8 @@ export type ErrorCode =
   | "same_password"
   | "last_admin"
   | "overlapping_year"
-  | "nothing_selected";
+  | "nothing_selected"
+  | "undo_reimbursement_first";
 
 export class AppError extends Error {
   constructor(

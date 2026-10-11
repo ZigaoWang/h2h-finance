@@ -116,7 +116,8 @@
     "nothing_selected": "请至少选择一笔支出。",
     "name_taken": "成员名单中已有同名成员。",
     "wrong_password": "当前密码不正确。",
-    "same_password": "社团密码和管理员密码不能相同。"
+    "same_password": "社团密码和管理员密码不能相同。",
+    "undo_reimbursement_first": "这笔报销已打款，修改金额前请先撤销打款。"
   },
   "admin": {
     "title": "管理",
@@ -297,7 +298,9 @@
       "similar": "这张凭证似乎已经提交过"
     },
     "paidAt": "付款时间 {time}",
-    "transactionNo": "交易单号 {id}"
+    "transactionNo": "交易单号 {id}",
+    "saveChanges": "保存修改",
+    "receiptsAdminHint": "凭证保持原样，如有错误请修正下方信息。"
   },
   "expenses": {
     "title": "我的报销",
@@ -363,7 +366,10 @@
       "title": "与截图不一致",
       "amount": "截图显示金额为 {amount}。",
       "date": "截图显示付款日期为 {date}。"
-    }
+    },
+    "adminEditNotice": "你正在以管理员身份修改 {name} 的报销，你的名字和每处修改都会记录在历史中。",
+    "amount": "金额",
+    "description": "用途"
   },
   "review": {
     "approve": "批准",

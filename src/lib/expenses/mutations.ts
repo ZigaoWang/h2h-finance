@@ -44,9 +44,33 @@ const itemSchema = z.object({
 
 export const submissionSchema = detailsSchema.extend({ items: z.array(itemSchema).min(1).max(20) });
 export const updateSchema = detailsSchema.extend(itemSchema.shape);
+// Admins correct the details; the receipts themselves stay as submitted.
+export const adminUpdateSchema = detailsSchema.extend(itemSchema.omit({ fileIds: true }).shape);
 
 export type SubmissionInput = z.input<typeof submissionSchema>;
 export type UpdateInput = z.input<typeof updateSchema>;
+export type AdminUpdateInput = z.input<typeof adminUpdateSchema>;
+
+type Expense = typeof expenses.$inferSelect;
+type Details = Pick<Expense, "amountCents" | "merchant" | "spentOn" | "description" | "note" | "categoryId" | "eventId">;
+type Names = { en: string; zh: string } | null;
+
+function names(table: typeof categories | typeof events, id: number | null): Names {
+  if (!id) return null;
+  const row = db.select({ en: table.nameEn, zh: table.nameZh }).from(table).where(eq(table.id, id)).get();
+  return row ?? null;
+}
+
+/** What changed, field by field, in a form the history can show without looking anything up. */
+function describeChanges(before: Details, after: Details) {
+  const changes: Record<string, [unknown, unknown]> = {};
+  for (const key of ["amountCents", "merchant", "spentOn", "description", "note"] as const) {
+    if ((before[key] ?? null) !== (after[key] ?? null)) changes[key] = [before[key] ?? null, after[key] ?? null];
+  }
+  if (before.categoryId !== after.categoryId) changes.category = [names(categories, before.categoryId), names(categories, after.categoryId)];
+  if ((before.eventId ?? null) !== (after.eventId ?? null)) changes.event = [names(events, before.eventId), names(events, after.eventId)];
+  return changes;
+}
 
 function parse<T extends z.ZodType>(schema: T, input: unknown): z.output<T> {
   const result = schema.safeParse(input);
@@ -54,9 +78,9 @@ function parse<T extends z.ZodType>(schema: T, input: unknown): z.output<T> {
   return result.data;
 }
 
-function assertActiveOptions(categoryId: number, eventId: number | null | undefined) {
+function assertActiveOptions(categoryId: number, eventId: number | null | undefined, { categoryChanged = true } = {}) {
   const category = db.select().from(categories).where(eq(categories.id, categoryId)).get();
-  if (!category || category.archivedAt) throw new AppError("inactive_option", "category");
+  if (!category || (categoryChanged && category.archivedAt)) throw new AppError("inactive_option", "category");
   if (eventId) {
     const event = db.select().from(events).where(eq(events.id, eventId)).get();
     if (!event || event.archivedAt) throw new AppError("inactive_option", "event");
@@ -148,22 +172,27 @@ export function updateExpense(user: SessionUser, id: number, input: UpdateInput)
   assertOwnFreeFiles(user.id, data.fileIds, id);
   const year = assertDate(data.spentOn);
 
+  const after: Details = {
+    amountCents: data.amount,
+    merchant: data.merchant,
+    spentOn: data.spentOn,
+    description: data.description,
+    note: data.note ?? null,
+    categoryId: data.categoryId,
+    eventId: data.eventId ?? null,
+  };
+
   db.transaction((tx) => {
     tx.update(expenses)
       .set({
+        ...after,
         yearId: year.id,
-        categoryId: data.categoryId,
-        eventId: data.eventId ?? null,
-        amountCents: data.amount,
-        merchant: data.merchant,
-        spentOn: data.spentOn,
-        description: data.description,
-        note: data.note ?? null,
         status: "pending",
         reviewedBy: null,
         reviewedAt: null,
         rejectionReason: null,
         updatedAt: new Date(),
+        updatedBy: user.id,
       })
       .where(eq(expenses.id, id))
       .run();
@@ -175,11 +204,46 @@ export function updateExpense(user: SessionUser, id: number, input: UpdateInput)
       action: "expense.updated",
       entity: "expense",
       entityId: id,
-      data: {
-        before: { amountCents: expense.amountCents, merchant: expense.merchant, spentOn: expense.spentOn, status: expense.status },
-        after: { amountCents: data.amount, merchant: data.merchant, spentOn: data.spentOn },
-      },
+      data: { changes: describeChanges(expense, after), resubmitted: expense.status === "rejected" },
     });
+  });
+}
+
+/**
+ * Admins can correct any expense that hasn't been deleted, including approved and paid-back
+ * ones. Nothing is quiet: who changed what is recorded, and the database keeps the old version.
+ */
+export function adminUpdateExpense(admin: SessionUser, id: number, input: AdminUpdateInput) {
+  const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
+  if (!expense) throw new AppError("not_found");
+  if (expense.status === "voided") throw new AppError("locked");
+  const data = parse(adminUpdateSchema, input);
+  const after: Details = {
+    amountCents: data.amount,
+    merchant: data.merchant,
+    spentOn: data.spentOn,
+    description: data.description,
+    note: data.note ?? null,
+    categoryId: data.categoryId,
+    eventId: data.eventId ?? null,
+  };
+  const changes = describeChanges(expense, after);
+  if (!Object.keys(changes).length) return;
+  if (expense.status === "reimbursed" && changes.amountCents) throw new AppError("undo_reimbursement_first");
+  // Only newly chosen options must be active; an expense may keep an archived one.
+  assertActiveOptions(
+    changes.category ? data.categoryId : expense.categoryId,
+    changes.event ? data.eventId : null,
+    { categoryChanged: !!changes.category },
+  );
+  const year = assertDate(data.spentOn);
+
+  db.transaction((tx) => {
+    tx.update(expenses)
+      .set({ ...after, yearId: year.id, updatedAt: new Date(), updatedBy: admin.id })
+      .where(eq(expenses.id, id))
+      .run();
+    audit(tx, { actorId: admin.id, action: "expense.updated", entity: "expense", entityId: id, data: { changes } });
   });
 }
 

@@ -116,7 +116,8 @@
     "nothing_selected": "Select at least one expense.",
     "name_taken": "Someone on the member list already has that name.",
     "wrong_password": "The current password isn't right.",
-    "same_password": "The team and admin passwords must be different."
+    "same_password": "The team and admin passwords must be different.",
+    "undo_reimbursement_first": "This expense has been paid back. Undo the reimbursement before changing the amount."
   },
   "admin": {
     "title": "Admin",
@@ -297,7 +298,9 @@
       "similar": "This looks like a receipt that was already submitted"
     },
     "paidAt": "Paid at {time}",
-    "transactionNo": "Transaction {id}"
+    "transactionNo": "Transaction {id}",
+    "saveChanges": "Save changes",
+    "receiptsAdminHint": "Receipts stay exactly as submitted. Correct the details if they're wrong."
   },
   "expenses": {
     "title": "My expenses",
@@ -363,7 +366,10 @@
       "title": "Doesn't match the screenshot",
       "amount": "The screenshot shows {amount}.",
       "date": "The screenshot shows it was paid on {date}."
-    }
+    },
+    "adminEditNotice": "You're correcting {name}'s expense as an admin. Your name and every change are recorded in its history.",
+    "amount": "Amount",
+    "description": "Description"
   },
   "review": {
     "approve": "Approve",

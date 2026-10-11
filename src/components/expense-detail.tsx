@@ -5,6 +5,7 @@ import { OwnerActions } from "@/components/owner-actions";
 import { ReviewActions, VoidAction } from "@/components/review-actions";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert } from "@/components/ui/alert";
+import { ButtonLink } from "@/components/ui/button";
 import { Panel } from "@/components/ui/card";
 import type { SessionUser } from "@/lib/auth/dal";
 import { formatDate, formatDateTime } from "@/lib/dates";
@@ -119,9 +120,12 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
               <OwnerActions id={expense.id} status={expense.status} />
             </div>
           )}
-          {isAdmin && expense.status === "approved" && (
-            <div className="mt-4 flex justify-end border-t border-line pt-3">
-              <VoidAction id={expense.id} />
+          {isAdmin && expense.status !== "voided" && !(isOwner && (expense.status === "pending" || expense.status === "rejected")) && (
+            <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3">
+              <ButtonLink href={`/expenses/${expense.id}/edit`} variant="secondary" size="sm">
+                {t("edit")}
+              </ButtonLink>
+              {expense.status === "approved" && <VoidAction id={expense.id} />}
             </div>
           )}
         </Panel>
@@ -199,9 +203,58 @@ const HISTORY_KEYS: Record<string, "submitted" | "updated" | "approved" | "rejec
   "expense.voided": "voided",
 };
 
+type Names = { en: string; zh: string } | null;
+const CHANGE_FIELDS = ["amountCents", "merchant", "spentOn", "category", "event", "description", "note"] as const;
+
+/** "Amount: ¥25.00 → ¥30.00" lines for an edit, readable without looking anything up. */
+function useChangeLines(changes: unknown): string[] {
+  const t = useTranslations("expense");
+  const locale = useLocale();
+  if (!changes || typeof changes !== "object") return [];
+  const record = changes as Record<string, [unknown, unknown]>;
+  const show = (field: (typeof CHANGE_FIELDS)[number], value: unknown) => {
+    if (value === null || value === undefined || value === "") return "—";
+    if (field === "amountCents") return formatMoney(value as number);
+    if (field === "spentOn") return formatDate(value as string, locale);
+    if (field === "category" || field === "event") return localName(locale, (value as Names)?.en ?? null, (value as Names)?.zh ?? null) || "—";
+    return String(value);
+  };
+  const labels = {
+    amountCents: t("amount"),
+    merchant: t("merchant"),
+    spentOn: t("date"),
+    category: t("category"),
+    event: t("event"),
+    description: t("description"),
+    note: t("note"),
+  };
+  return CHANGE_FIELDS.filter((f) => record[f]).map((f) => `${labels[f]}: ${show(f, record[f][0])} → ${show(f, record[f][1])}`);
+}
+
+function HistoryEntry({ label, reason, changes, at }: { label: string; reason?: string; changes?: unknown; at: Date }) {
+  const locale = useLocale();
+  const lines = useChangeLines(changes);
+  return (
+    <li className="relative">
+      <span className="absolute top-1.5 -left-[24.5px] size-2 rounded-full border-2 border-surface bg-line-strong ring-1 ring-line-strong" aria-hidden />
+      <p className="text-sm">{label}</p>
+      {reason && <p className="mt-0.5 text-sm text-muted">“{reason}”</p>}
+      {lines.length > 0 && (
+        <ul className="mt-1 flex flex-col gap-0.5 text-[13px] text-muted">
+          {lines.map((line) => (
+            <li key={line} className="break-words">
+              {line}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-0.5 text-xs text-faint">{formatDateTime(at, locale)}</p>
+    </li>
+  );
+}
+
 function History({ history, reimbursement }: { history: Detail["history"]; reimbursement: Detail["reimbursement"] }) {
   const t = useTranslations("expense.history");
-  const locale = useLocale();
   const entries = history.flatMap((h) => {
     const key = HISTORY_KEYS[h.action];
     if (!key) return [];
@@ -209,25 +262,21 @@ function History({ history, reimbursement }: { history: Detail["history"]; reimb
       {
         key: `${h.action}-${h.createdAt.getTime()}`,
         label: t(key, { name: h.actorName ?? "" }),
-        detail: typeof h.data?.reason === "string" ? h.data.reason : undefined,
+        reason: typeof h.data?.reason === "string" ? h.data.reason : undefined,
+        changes: h.data?.changes,
         at: h.createdAt,
       },
     ];
   });
-  if (reimbursement) entries.push({ key: "paid", label: t("paid", { name: reimbursement.payerName }), detail: undefined, at: reimbursement.createdAt });
+  if (reimbursement) entries.push({ key: "paid", label: t("paid", { name: reimbursement.payerName }), reason: undefined, changes: undefined, at: reimbursement.createdAt });
   entries.sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (
     <Panel className="p-5">
       <h3 className="mb-4 text-sm font-semibold">{t("title")}</h3>
       <ol className="relative flex flex-col gap-4 border-l border-line pl-5">
-        {entries.map((e) => (
-          <li key={e.key} className="relative">
-            <span className="absolute top-1.5 -left-[24.5px] size-2 rounded-full border-2 border-surface bg-line-strong ring-1 ring-line-strong" aria-hidden />
-            <p className="text-sm">{e.label}</p>
-            {e.detail && <p className="mt-0.5 text-sm text-muted">“{e.detail}”</p>}
-            <p className="mt-0.5 text-xs text-faint">{formatDateTime(e.at, locale)}</p>
-          </li>
+        {entries.map(({ key, ...entry }) => (
+          <HistoryEntry key={key} {...entry} />
         ))}
       </ol>
     </Panel>
