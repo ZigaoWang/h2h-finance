@@ -57,13 +57,14 @@ export function PayBackForm({ userId, expenses, today }: { userId: number; expen
   }
 
   const mismatch = proof?.status === "done" && proof.amountCents !== undefined && proof.amountCents !== total;
-  const ready = selected.size > 0 && proof?.status === "done" && !!paidOn;
+  // A screenshot is optional, but one still uploading must finish first.
+  const ready = selected.size > 0 && !!paidOn && (!proof || proof.status === "done");
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        if (ready) pay.execute({ userId, expenseIds: [...selected], proofFileId: proof!.fileId!, paidOn, note });
+        if (ready) pay.execute({ userId, expenseIds: [...selected], proofFileId: proof?.fileId ?? "", paidOn, note });
       }}
       className="flex flex-col gap-6"
     >
@@ -101,7 +102,10 @@ export function PayBackForm({ userId, expenses, today }: { userId: number; expen
       </Panel>
 
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium">{t("transfer")}</p>
+        <p className="flex items-baseline justify-between text-sm font-medium">
+          {t("transfer")}
+          <span className="text-xs font-normal text-faint">{t("optional")}</span>
+        </p>
         <input
           ref={input}
           type="file"

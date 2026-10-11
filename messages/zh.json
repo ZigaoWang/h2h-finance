@@ -424,7 +424,7 @@
     "selectedCount": "{count, plural, =0 {未选择} other {已选 # 笔}}",
     "transfer": "转账截图",
     "addTransfer": "添加转账截图",
-    "transferHint": "给成员的微信或支付宝转账截图，仅管理员和该成员可见。",
+    "transferHint": "给成员的微信或支付宝转账截图（如有），仅管理员和该成员可见。",
     "reading": "正在识别截图…",
     "noAmountFound": "未能识别金额，请确认与合计一致。",
     "amountMatches": "截图金额 {amount}，与合计一致。",

@@ -343,7 +343,8 @@ export function restoreExpense(admin: SessionUser, id: number) {
 const reimbursementSchema = z.object({
   userId: z.coerce.number().int().positive(),
   expenseIds: z.array(z.coerce.number().int().positive()).min(1),
-  proofFileId: z.uuid(),
+  // The transfer screenshot is good practice, not a requirement: a cash payback has none.
+  proofFileId: z.preprocess((v) => (v === "" ? undefined : v), z.uuid().optional()),
   paidOn: isoDate,
   note: optionalText(500),
 });
@@ -361,9 +362,11 @@ export function createReimbursement(admin: SessionUser, input: ReimbursementInpu
     .all();
   if (selected.length !== new Set(data.expenseIds).size) throw new AppError("locked");
 
-  const proof = db.select().from(files).where(eq(files.id, data.proofFileId)).get();
-  if (!proof || proof.kind !== "transfer" || proof.ownerId !== admin.id || proof.expenseId || proof.reimbursementId) {
-    throw new AppError("file_missing");
+  if (data.proofFileId) {
+    const proof = db.select().from(files).where(eq(files.id, data.proofFileId)).get();
+    if (!proof || proof.kind !== "transfer" || proof.ownerId !== admin.id || proof.expenseId || proof.reimbursementId) {
+      throw new AppError("file_missing");
+    }
   }
 
   const total = selected.reduce((sum, e) => sum + e.amountCents, 0);
@@ -378,10 +381,12 @@ export function createReimbursement(admin: SessionUser, input: ReimbursementInpu
       .set({ status: "reimbursed", reimbursementId: id })
       .where(and(inArray(expenses.id, data.expenseIds), eq(expenses.status, "approved")))
       .run();
-    tx.update(files)
-      .set({ reimbursementId: id })
-      .where(and(eq(files.id, data.proofFileId), isNull(files.reimbursementId)))
-      .run();
+    if (data.proofFileId) {
+      tx.update(files)
+        .set({ reimbursementId: id })
+        .where(and(eq(files.id, data.proofFileId), isNull(files.reimbursementId)))
+        .run();
+    }
     audit(tx, {
       actorId: admin.id,
       action: "reimbursement.created",

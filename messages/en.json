@@ -424,7 +424,7 @@
     "selectedCount": "{count, plural, =0 {None selected} one {# selected} other {# selected}}",
     "transfer": "Transfer screenshot",
     "addTransfer": "Add transfer screenshot",
-    "transferHint": "The WeChat or Alipay transfer to the member. Visible only to admins and that member.",
+    "transferHint": "The WeChat or Alipay transfer to the member, if there is one. Visible only to admins and that member.",
     "reading": "Reading screenshot…",
     "noAmountFound": "Couldn't read an amount. Check it matches the total.",
     "amountMatches": "Screenshot shows {amount}, matching the total.",
