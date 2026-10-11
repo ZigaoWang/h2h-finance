@@ -131,7 +131,7 @@
     "invalid": "Some details aren't valid. Check the form and try again.",
     "rate_limited": "That's a lot in a short time. Wait a little and try again.",
     "no_year": "No budget year covers that date. Ask the club lead to set one up.",
-    "locked": "This has already been reviewed and can't be changed.",
+    "locked": "This can no longer be changed.",
     "file_missing": "A screenshot is missing or was already used. Upload it again.",
     "inactive_option": "That category or event is no longer available.",
     "last_admin": "The club needs at least one admin.",
@@ -195,7 +195,7 @@
         "admin": "Admin"
       },
       "memberHint": "Can submit expenses and see the dashboard.",
-      "adminHint": "Can also review expenses, pay members back and manage everything here.",
+      "adminHint": "Can also correct or delete any expense and manage members and settings.",
       "you": "(you)",
       "remove": "Remove",
       "restore": "Restore",
@@ -277,7 +277,7 @@
     "removePhoto": "Remove photo",
     "preview": "Screenshot",
     "duplicateOwn": "It matches expense #{id}. Remove it unless this really is a separate payment.",
-    "duplicateHint": "You can still submit it; the reviewer will see this warning.",
+    "duplicateHint": "You can still submit it; admins will see this warning.",
     "details": "Details",
     "detailsShared": "These apply to every payment above.",
     "category": "Category",
@@ -446,7 +446,7 @@
     "search": "Search descriptions and shops",
     "member": "Member",
     "everyone": "Everyone",
-    "summary": "{count, plural, one {# expense} other {# expenses}} · {total} approved"
+    "summary": "{count, plural, one {# expense} other {# expenses}} · {total} in total"
   },
   "footer": {
     "club": "Heart to Heart",

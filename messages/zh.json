@@ -131,7 +131,7 @@
     "invalid": "部分信息有误，请检查后重试。",
     "rate_limited": "操作过于频繁，请稍后再试。",
     "no_year": "该日期不在任何预算年度内，请联系社长设置。",
-    "locked": "该记录已审核，无法修改。",
+    "locked": "该记录已无法修改。",
     "file_missing": "截图缺失或已被使用，请重新上传。",
     "inactive_option": "该类别或活动已停用。",
     "last_admin": "社团至少需要一名管理员。",
@@ -195,7 +195,7 @@
         "admin": "管理员"
       },
       "memberHint": "可以提交报销、查看总览。",
-      "adminHint": "还可以审核报销、给成员打款并管理此处所有设置。",
+      "adminHint": "还可以修改或删除任何开支，并管理成员和设置。",
       "you": "（你）",
       "remove": "移除",
       "restore": "恢复",
@@ -277,7 +277,7 @@
     "removePhoto": "移除照片",
     "preview": "截图",
     "duplicateOwn": "与报销 #{id} 重复。除非确实是另一笔付款，否则请移除。",
-    "duplicateHint": "仍可提交，审核人会看到此提示。",
+    "duplicateHint": "仍可提交，管理员会看到此提示。",
     "details": "详情",
     "detailsShared": "以下信息适用于上面所有付款。",
     "category": "类别",
@@ -446,7 +446,7 @@
     "search": "搜索用途或商家",
     "member": "成员",
     "everyone": "所有人",
-    "summary": "共 {count} 笔 · 已批准 {total}"
+    "summary": "共 {count} 笔 · 合计 {total}"
   },
   "footer": {
     "club": "心连心",

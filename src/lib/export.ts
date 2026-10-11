@@ -22,7 +22,7 @@ const COPY = {
     period: "Period",
     generated: "Generated",
     budget: "Budget",
-    spent: "Spent (approved)",
+    spent: "Spent",
     remaining: "Remaining",
     byCategory: "By category",
     byEvent: "By event",
@@ -50,7 +50,7 @@ const COPY = {
       details: "Details",
     },
     total: "Total spent",
-    status: { pending: "Recorded", approved: "Recorded", reimbursed: "Paid back", rejected: "Deleted", voided: "Deleted" },
+    status: { pending: "Recorded", approved: "Recorded", reimbursed: "Recorded", rejected: "Deleted", voided: "Deleted" },
   },
   zh: {
     summary: "汇总",
@@ -60,7 +60,7 @@ const COPY = {
     period: "期间",
     generated: "导出时间",
     budget: "预算",
-    spent: "已支出（已批准）",
+    spent: "已支出",
     remaining: "剩余",
     byCategory: "按类别",
     byEvent: "按活动",
@@ -87,8 +87,8 @@ const COPY = {
       entity: "记录",
       details: "详情",
     },
-    total: "支出合计（已批准及已报销）",
-    status: { pending: "已记录", approved: "已记录", reimbursed: "已报销", rejected: "已删除", voided: "已删除" },
+    total: "支出合计",
+    status: { pending: "已记录", approved: "已记录", reimbursed: "已记录", rejected: "已删除", voided: "已删除" },
   },
 } as const;
 
