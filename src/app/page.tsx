@@ -42,7 +42,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               )}
             </div>
           </div>
-          {year && <YearSwitch years={listYears()} value={year.id} />}
+          <div className="flex items-center gap-3">
+            {year && <YearSwitch years={listYears()} value={year.id} />}
+            <LocaleSwitch />
+          </div>
         </header>
 
         {!enabled ? (
@@ -68,7 +71,6 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <MadeBy />
           </p>
           <div className="flex items-center gap-4">
-            <LocaleSwitch />
             <Link href={signedIn ? "/dashboard" : "/login"} className="inline-flex items-center gap-1 text-[13px] font-medium text-ink hover:underline hover:underline-offset-4">
               {signedIn ? t("home.openDashboard") : t("home.signIn")}
               <ArrowRight className="size-3.5" aria-hidden />
