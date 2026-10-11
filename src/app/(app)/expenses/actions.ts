@@ -3,11 +3,13 @@
 import { requireAdmin, requireUser } from "@/lib/auth/dal";
 import {
   approveExpense,
+  createReimbursement,
   rejectExpense,
   submitExpenses,
   updateExpense,
   voidExpense,
   withdrawExpense,
+  type ReimbursementInput,
   type SubmissionInput,
   type UpdateInput,
 } from "@/lib/expenses/mutations";
@@ -41,4 +43,9 @@ export async function rejectExpenseAction(id: number, reason: string) {
 export async function voidExpenseAction(id: number, reason: string) {
   const admin = await requireAdmin();
   return mutate(() => voidExpense(admin, id, reason));
+}
+
+export async function createReimbursementAction(input: ReimbursementInput) {
+  const admin = await requireAdmin();
+  return mutate(() => createReimbursement(admin, input));
 }
