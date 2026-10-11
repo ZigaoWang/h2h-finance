@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { DashboardBody } from "@/components/dashboard/dashboard-body";
 import { LocaleSwitch } from "@/components/locale-switch";
@@ -29,10 +29,22 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <main className="mx-auto w-full max-w-[1080px] flex-1 px-4 pt-10 pb-16 sm:px-6 md:pt-16">
+      {/* This site is part of the club's website; the way back is always in view. */}
+      <div className="border-b border-line bg-[#fafafa]">
+        <div className="mx-auto flex h-11 max-w-[1080px] items-center justify-between gap-4 px-4 sm:px-6">
+          <a href="https://h2h.ykps.net" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-2 hover:text-ink">
+            <ArrowLeft className="size-3.5" aria-hidden />
+            {t("home.mainSite")}
+          </a>
+          <LocaleSwitch />
+        </div>
+      </div>
+      <main className="mx-auto w-full max-w-[1080px] flex-1 px-4 pt-10 pb-16 sm:px-6 md:pt-14">
         <header className="mb-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-4 md:mb-12">
           <div className="flex items-center gap-4">
-            <LogoMark size={56} />
+            <a href="https://h2h.ykps.net" aria-label={t("home.mainSite")} className="shrink-0 transition-opacity hover:opacity-80">
+              <LogoMark size={56} />
+            </a>
             <div>
               <h1 className="text-[24px] leading-tight font-semibold tracking-tight sm:text-[28px]">{t("brand.name")}</h1>
               {year && (
@@ -42,10 +54,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {year && <YearSwitch years={listYears()} value={year.id} />}
-            <LocaleSwitch />
-          </div>
+          {year && <YearSwitch years={listYears()} value={year.id} />}
         </header>
 
         {!enabled ? (
