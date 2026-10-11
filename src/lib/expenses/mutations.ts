@@ -394,6 +394,69 @@ export function createReimbursement(admin: SessionUser, input: ReimbursementInpu
       entityId: id,
       data: { userId: data.userId, amountCents: total, expenseIds: data.expenseIds },
     });
+    // Each expense records its own payback, so its history stays complete even if this is undone.
+    for (const expenseId of data.expenseIds) {
+      audit(tx, { actorId: admin.id, action: "expense.paid", entity: "expense", entityId: expenseId, data: { reimbursementId: id } });
+    }
     return id;
+  });
+}
+
+const reimbursementEditSchema = z.object({
+  paidOn: isoDate,
+  note: optionalText(500),
+  proofFileId: z.preprocess((v) => (v === "" ? undefined : v), z.uuid().optional()),
+});
+
+function getStandingReimbursement(id: number) {
+  const reimbursement = db.select().from(reimbursements).where(eq(reimbursements.id, id)).get();
+  if (!reimbursement) throw new AppError("not_found");
+  if (reimbursement.undoneAt) throw new AppError("locked");
+  return reimbursement;
+}
+
+/** Corrects a reimbursement's date or note, or attaches the transfer screenshot afterwards. */
+export function updateReimbursement(admin: SessionUser, id: number, input: z.input<typeof reimbursementEditSchema>) {
+  const before = getStandingReimbursement(id);
+  const data = parse(reimbursementEditSchema, input);
+  if (data.paidOn > today()) throw new AppError("invalid", "paidOn");
+  const hasProof = !!db.select({ id: files.id }).from(files).where(eq(files.reimbursementId, id)).get();
+  if (data.proofFileId) {
+    const proof = db.select().from(files).where(eq(files.id, data.proofFileId)).get();
+    if (hasProof || !proof || proof.kind !== "transfer" || proof.ownerId !== admin.id || proof.expenseId || proof.reimbursementId) {
+      throw new AppError("file_missing");
+    }
+  }
+  db.transaction((tx) => {
+    tx.update(reimbursements).set({ paidOn: data.paidOn, note: data.note ?? null }).where(eq(reimbursements.id, id)).run();
+    if (data.proofFileId) tx.update(files).set({ reimbursementId: id }).where(eq(files.id, data.proofFileId)).run();
+    audit(tx, {
+      actorId: admin.id,
+      action: "reimbursement.updated",
+      entity: "reimbursement",
+      entityId: id,
+      data: { before: { paidOn: before.paidOn, note: before.note }, after: { paidOn: data.paidOn, note: data.note ?? null }, proofAdded: !!data.proofFileId },
+    });
+  });
+}
+
+/**
+ * Undoes a reimbursement that was recorded by mistake. It stays on record as undone, with who and
+ * why, and its expenses go back to waiting to be paid back.
+ */
+export function undoReimbursement(admin: SessionUser, id: number, reason: string) {
+  const why = parse(reasonSchema, reason);
+  getStandingReimbursement(id);
+  const expenseIds = db.select({ id: expenses.id }).from(expenses).where(eq(expenses.reimbursementId, id)).all().map((e) => e.id);
+  db.transaction((tx) => {
+    tx.update(reimbursements).set({ undoneAt: new Date(), undoneBy: admin.id, undoReason: why }).where(eq(reimbursements.id, id)).run();
+    tx.update(expenses)
+      .set({ status: "approved", reimbursementId: null, updatedAt: new Date(), updatedBy: admin.id })
+      .where(eq(expenses.reimbursementId, id))
+      .run();
+    audit(tx, { actorId: admin.id, action: "reimbursement.undone", entity: "reimbursement", entityId: id, data: { reason: why, expenseIds } });
+    for (const expenseId of expenseIds) {
+      audit(tx, { actorId: admin.id, action: "expense.unpaid", entity: "expense", entityId: expenseId, data: { reason: why, reimbursementId: id } });
+    }
   });
 }

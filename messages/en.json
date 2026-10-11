@@ -355,7 +355,8 @@
       "approved": "Approved by {name}",
       "rejected": "Rejected by {name}",
       "voided": "Deleted by {name}",
-      "restored": "Restored by {name}"
+      "restored": "Restored by {name}",
+      "unpaid": "Payback undone by {name}"
     },
     "transactionId": "Transaction no.",
     "approvedBy": "Approved by",
@@ -435,7 +436,15 @@
     "optional": "Optional",
     "confirm": "Mark {amount} as paid back",
     "permanent": "Reimbursements are permanent and can't be edited afterwards.",
-    "done": "Reimbursement recorded"
+    "done": "Reimbursement recorded",
+    "undo": "Undo",
+    "undoTitle": "Undo this reimbursement",
+    "undoHint": "Use this if it was recorded by mistake. It stays on record as undone with your name and reason, and its expenses go back to waiting to be paid back.",
+    "undone": "Reimbursement undone",
+    "undoneBy": "Undone by {name}",
+    "editTitle": "Edit reimbursement",
+    "reason": "Reason",
+    "transferAdded": "Screenshot added"
   },
   "notFound": {
     "title": "Page not found",

@@ -198,13 +198,15 @@ export function DuplicateAlert({ flags, isAdmin }: { flags: DuplicateFlag[]; isA
   );
 }
 
-const HISTORY_KEYS: Record<string, "submitted" | "updated" | "approved" | "rejected" | "voided" | "restored"> = {
+const HISTORY_KEYS: Record<string, "submitted" | "updated" | "approved" | "rejected" | "voided" | "restored" | "paid" | "unpaid"> = {
   "expense.submitted": "submitted",
   "expense.updated": "updated",
   "expense.approved": "approved",
   "expense.rejected": "rejected",
   "expense.voided": "voided",
   "expense.restored": "restored",
+  "expense.paid": "paid",
+  "expense.unpaid": "unpaid",
 };
 
 type Names = { en: string; zh: string } | null;
@@ -272,7 +274,8 @@ function History({ history, reimbursement }: { history: Detail["history"]; reimb
       },
     ];
   });
-  if (reimbursement) entries.push({ key: "paid", label: t("paid", { name: reimbursement.payerName }), reason: undefined, changes: undefined, at: reimbursement.createdAt });
+  // Paybacks recorded before expenses logged their own still show up.
+  if (reimbursement && !history.some((h) => h.action === "expense.paid")) entries.push({ key: "paid", label: t("paid", { name: reimbursement.payerName }), reason: undefined, changes: undefined, at: reimbursement.createdAt });
   entries.sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (

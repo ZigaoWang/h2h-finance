@@ -5,10 +5,12 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { EmptyState, Panel, Section } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireAdmin } from "@/lib/auth/dal";
-import { formatDate } from "@/lib/dates";
+import { cn } from "@/lib/cn";
+import { formatDate, today } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { listReimbursements } from "@/lib/reimbursements";
 import { owedByMember } from "@/lib/stats";
+import { ReimbursementActions } from "./row-actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -55,20 +57,28 @@ export default async function ReimbursePage() {
           {history.length ? (
             <ul className="divide-y divide-line">
               {history.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
+                <li key={r.id} className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3", r.undoneAt && "bg-subtle/50")}>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{r.payee}</p>
+                    <p className={cn("truncate font-medium", r.undoneAt && "text-muted")}>{r.payee}</p>
                     <p className="text-[13px] text-muted">
-                      {[formatDate(r.paidOn, locale), t("expenses", { count: r.expenseCount }), t("paidBy", { name: r.payer })].join(" · ")}
+                      {[formatDate(r.paidOn, locale), !r.undoneAt && t("expenses", { count: r.expenseCount }), t("paidBy", { name: r.payer })]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                     {r.note && <p className="mt-0.5 text-[13px] text-muted">{r.note}</p>}
+                    {r.undoneAt && (
+                      <p className="mt-0.5 text-[13px] text-danger">
+                        {t("undoneBy", { name: r.undoneBy ?? "" })}: “{r.undoReason}”
+                      </p>
+                    )}
                   </div>
                   {r.proofFileId && (
                     <a href={`/api/files/${r.proofFileId}`} target="_blank" className="text-[13px] font-medium underline decoration-line-strong underline-offset-4 hover:decoration-ink">
                       {t("viewTransfer")}
                     </a>
                   )}
-                  <span className="num font-medium">{formatMoney(r.amountCents)}</span>
+                  <span className={cn("num font-medium", r.undoneAt && "text-faint line-through")}>{formatMoney(r.amountCents)}</span>
+                  {!r.undoneAt && <ReimbursementActions row={{ id: r.id, paidOn: r.paidOn, note: r.note, hasProof: !!r.proofFileId }} today={today()} />}
                 </li>
               ))}
             </ul>

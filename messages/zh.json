@@ -355,7 +355,8 @@
       "approved": "{name} 批准",
       "rejected": "{name} 驳回",
       "voided": "{name} 删除",
-      "restored": "{name} 恢复"
+      "restored": "{name} 恢复",
+      "unpaid": "{name} 撤销打款"
     },
     "transactionId": "交易单号",
     "approvedBy": "批准人",
@@ -435,7 +436,15 @@
     "optional": "选填",
     "confirm": "确认已打款 {amount}",
     "permanent": "打款记录一经确认无法修改。",
-    "done": "已记录打款"
+    "done": "已记录打款",
+    "undo": "撤销",
+    "undoTitle": "撤销这笔打款",
+    "undoHint": "用于纠正误记的打款。记录会连同你的名字和原因保留为已撤销，相关报销恢复为待打款。",
+    "undone": "已撤销打款",
+    "undoneBy": "{name} 撤销",
+    "editTitle": "编辑打款",
+    "reason": "原因",
+    "transferAdded": "已添加截图"
   },
   "notFound": {
     "title": "页面不存在",

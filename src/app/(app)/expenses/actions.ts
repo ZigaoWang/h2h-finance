@@ -9,6 +9,8 @@ import {
   submitExpenses,
   deleteExpense,
   restoreExpense,
+  undoReimbursement,
+  updateReimbursement,
   updateExpense,
   withdrawExpense,
   type AdminUpdateInput,
@@ -61,4 +63,14 @@ export async function restoreExpenseAction(id: number) {
 export async function createReimbursementAction(input: ReimbursementInput) {
   const admin = await requireAdmin();
   return mutate(() => createReimbursement(admin, input));
+}
+
+export async function updateReimbursementAction(id: number, input: { paidOn: string; note: string; proofFileId: string }) {
+  const admin = await requireAdmin();
+  return mutate(() => updateReimbursement(admin, id, input));
+}
+
+export async function undoReimbursementAction(id: number, reason: string) {
+  const admin = await requireAdmin();
+  return mutate(() => undoReimbursement(admin, id, reason));
 }
