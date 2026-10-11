@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "title": "H2H Finance",
+    "description": "Budget, spending and reimbursements for Heart to Heart, a student charity at YK Pao School."
+  },
+  "brand": {
+    "name": "H2H Finance",
+    "full": "Heart to Heart Finance"
+  },
+  "login": {
+    "title": "Sign in",
+    "emailPrompt": "Enter your email and we'll send you a sign-in code.",
+    "email": "Email",
+    "sendCode": "Send code",
+    "checkEmail": "Check your email",
+    "codeSent": "We sent a 6-digit code to <b>{email}</b>.",
+    "code": "Code",
+    "signIn": "Sign in",
+    "changeEmail": "Use a different email",
+    "resend": "Resend code",
+    "resendIn": "Resend in {seconds}s",
+    "resent": "A new code is on its way.",
+    "inviteOnly": "Only invited members can sign in. If you're in the club and don't get a code, ask the club lead to add your email.",
+    "viewPublic": "View the public dashboard",
+    "errors": {
+      "invalid_email": "Enter a valid email address.",
+      "rate_limited": "Too many attempts. Wait a while and try again.",
+      "send_failed": "We couldn't send the email. Try again in a minute.",
+      "invalid_code": "That code is wrong or has expired."
+    }
+  },
+  "nav": {
+    "label": "Main",
+    "dashboard": "Dashboard",
+    "expenses": "My expenses",
+    "review": "Review",
+    "reimburse": "Pay back",
+    "admin": "Admin",
+    "submit": "New expense",
+    "account": "Account",
+    "language": "Language",
+    "signOut": "Sign out"
+  }
+}

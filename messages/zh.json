@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "title": "H2H 财务",
+    "description": "包玉刚实验学校学生慈善社团心连心的预算、支出与报销记录。"
+  },
+  "brand": {
+    "name": "H2H 财务",
+    "full": "心连心财务"
+  },
+  "login": {
+    "title": "登录",
+    "emailPrompt": "输入你的邮箱，我们会发送登录验证码。",
+    "email": "邮箱",
+    "sendCode": "发送验证码",
+    "checkEmail": "查收邮件",
+    "codeSent": "6 位验证码已发送至 <b>{email}</b>。",
+    "code": "验证码",
+    "signIn": "登录",
+    "changeEmail": "换一个邮箱",
+    "resend": "重新发送",
+    "resendIn": "{seconds} 秒后可重新发送",
+    "resent": "新的验证码已发送。",
+    "inviteOnly": "仅受邀成员可以登录。如果你是社团成员但没有收到验证码，请联系社长添加你的邮箱。",
+    "viewPublic": "查看公开账目",
+    "errors": {
+      "invalid_email": "请输入有效的邮箱地址。",
+      "rate_limited": "尝试次数过多，请稍后再试。",
+      "send_failed": "邮件发送失败，请稍后再试。",
+      "invalid_code": "验证码错误或已过期。"
+    }
+  },
+  "nav": {
+    "label": "主导航",
+    "dashboard": "总览",
+    "expenses": "我的报销",
+    "review": "审核",
+    "reimburse": "打款",
+    "admin": "管理",
+    "submit": "提交报销",
+    "account": "账户",
+    "language": "语言",
+    "signOut": "退出登录"
+  }
+}
