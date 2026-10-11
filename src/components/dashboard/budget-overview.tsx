@@ -48,14 +48,24 @@ export function BudgetOverview({ summary }: { summary: YearSummary }) {
         <p className="mt-1 text-[13px] text-muted">{budgetCents > 0 ? t("ofBudget", { budget: formatMoney(budgetCents) }) : t("noBudget")}</p>
 
         {budgetCents > 0 && (
-          <div className="mt-auto pt-6">
+          <div className="mt-auto pt-9">
             <div className="relative h-2 rounded-full bg-subtle" role="meter" aria-label={t("budgetUsed")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(share * 100)}>
               <div
                 className={cn("h-full rounded-full", over ? "bg-danger" : ahead ? "bg-pending" : "bg-ink")}
                 style={{ width: `${Math.min(100, Math.max(share * 100, share > 0 ? 1 : 0))}%` }}
               />
-              {/* Where spending would be if it went evenly through the year. */}
+              {/* Today's place in the year: spending to the left of it is on pace. */}
               <span className="absolute -top-1 h-4 w-px bg-ink-2" style={{ left: `${yearProgress * 100}%` }} aria-hidden />
+              <span
+                className={cn(
+                  "absolute -top-6 text-[11px] font-medium whitespace-nowrap text-ink-2",
+                  yearProgress < 0.1 ? "left-0" : yearProgress > 0.9 ? "right-0" : "-translate-x-1/2",
+                )}
+                style={yearProgress < 0.1 || yearProgress > 0.9 ? undefined : { left: `${yearProgress * 100}%` }}
+                aria-hidden
+              >
+                {t("today")}
+              </span>
             </div>
             <div className="mt-2.5 flex justify-between gap-4 text-[12px] text-muted">
               <span>{t("budgetUsedShare", { share: pct(share) })}</span>

@@ -86,10 +86,11 @@
     "average": "平均",
     "perExpense": "每笔支出",
     "largest": "单笔最大",
-    "yearGone": "年度已过 {share}",
+    "yearGone": "今天已过年度的 {share}",
     "aheadOfPace": "支出快于年度进度。",
     "overBudget": "已超出预算。",
-    "viewAll": "查看全部"
+    "viewAll": "查看全部",
+    "today": "今天"
   },
   "common": {
     "save": "保存",

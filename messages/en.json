@@ -86,10 +86,11 @@
     "average": "Average",
     "perExpense": "per expense",
     "largest": "Largest expense",
-    "yearGone": "{share} of the year gone",
+    "yearGone": "Today is {share} through the year",
     "aheadOfPace": "Spending is ahead of the year's pace.",
     "overBudget": "Over budget.",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "today": "Today"
   },
   "common": {
     "save": "Save",
