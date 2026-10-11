@@ -22,11 +22,11 @@ export default async function ExpensePage({ params }: PageProps<"/expenses/[id]"
 
   return (
     <>
-      <Link href={ownView ? "/expenses" : "/"} className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+      <Link href={ownView ? "/expenses" : "/dashboard"} className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden />
         {ownView ? t("backToMine") : t("backToDashboard")}
       </Link>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">{t("title", { id })}</h1>
+      <h1 className="mb-6 text-[22px] font-semibold tracking-tight">{t("title", { id })}</h1>
       <ExpenseDetailView detail={detail} viewer={viewer} />
     </>
   );

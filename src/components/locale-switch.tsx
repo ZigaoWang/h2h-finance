@@ -17,7 +17,7 @@ export function LocaleSwitch({ className }: { className?: string }) {
   const [pending, startTransition] = useTransition();
 
   return (
-    <div role="group" aria-label="Language" className={cn("inline-flex rounded-md border border-line bg-surface p-0.5", className)}>
+    <div role="group" aria-label="Language" className={cn("inline-flex rounded-md bg-subtle p-0.5", className)}>
       {OPTIONS.map((option) => (
         <button
           key={option.value}
@@ -32,8 +32,8 @@ export function LocaleSwitch({ className }: { className?: string }) {
             })
           }
           className={cn(
-            "h-7 rounded-[4px] px-2 text-xs font-medium transition-colors",
-            locale === option.value ? "bg-ink text-white" : "text-muted hover:text-ink",
+            "h-6 rounded-[4px] px-2 text-xs font-medium transition-colors",
+            locale === option.value ? "bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.1)]" : "text-muted hover:text-ink",
           )}
         >
           {option.label}

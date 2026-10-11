@@ -1,45 +1,40 @@
 import { useLocale, useTranslations } from "next-intl";
-import { Card, CardHeader } from "@/components/ui/card";
+import { Panel, Section } from "@/components/ui/card";
 import { localName } from "@/lib/i18n-names";
 import { formatMoney } from "@/lib/money";
 import type { Slice } from "@/lib/stats";
 
-/** Where the money went along one dimension, largest first. Values are always shown as text. */
+/** Where the money went along one dimension, largest first. Every value is also written out. */
 export function Breakdown({ title, slices, total, fallback }: { title: string; slices: Slice[]; total: number; fallback?: string }) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
-  const largest = slices[0]?.cents ?? 0;
   const percent = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en", { style: "percent", maximumFractionDigits: 0 });
 
   return (
-    <Card>
-      <CardHeader title={title} />
-      {slices.length === 0 ? (
-        <p className="px-5 py-8 text-center text-sm text-muted">{t("nothingYet")}</p>
-      ) : (
-        <ul className="divide-y divide-line">
-          {slices.map((slice) => {
-            const name = localName(locale, slice.nameEn, slice.nameZh) || fallback || "";
-            return (
-              <li key={slice.key} className="px-5 py-3">
-                <div className="flex items-baseline justify-between gap-4 text-sm">
-                  <span className="min-w-0 truncate">{name}</span>
-                  <span className="num shrink-0 font-medium">{formatMoney(slice.cents)}</span>
-                </div>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="h-1.5 flex-1 rounded-full bg-subtle">
-                    <div
-                      className="h-full rounded-full bg-ink-2"
-                      style={{ width: `${largest ? Math.max(1, (slice.cents / largest) * 100) : 0}%` }}
-                    />
+    <Section title={title}>
+      <Panel>
+        {slices.length === 0 ? (
+          <p className="px-4 py-8 text-center text-[13px] text-muted">{t("nothingYet")}</p>
+        ) : (
+          <ul className="divide-y divide-line">
+            {slices.map((slice) => {
+              const share = total ? slice.cents / total : 0;
+              return (
+                <li key={slice.key} className="px-4 py-3">
+                  <div className="flex items-baseline gap-3 text-sm">
+                    <span className="min-w-0 flex-1 truncate">{localName(locale, slice.nameEn, slice.nameZh) || fallback}</span>
+                    <span className="num text-xs text-faint">{percent.format(share)}</span>
+                    <span className="num font-medium">{formatMoney(slice.cents)}</span>
                   </div>
-                  <span className="num w-10 shrink-0 text-right text-xs text-muted">{percent.format(total ? slice.cents / total : 0)}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </Card>
+                  <div className="mt-2 h-1 rounded-full bg-subtle">
+                    <div className="h-full rounded-full bg-ink/80" style={{ width: `${Math.max(1, share * 100)}%` }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Panel>
+    </Section>
   );
 }

@@ -27,7 +27,7 @@ export default async function PayBackPage({ params }: PageProps<"/reimburse/[use
         <ArrowLeft className="size-4" aria-hidden />
         {t("title")}
       </Link>
-      <h1 className="text-2xl font-semibold tracking-tight">{t("payTitle", { name: member.name })}</h1>
+      <h1 className="text-[22px] font-semibold tracking-tight">{t("payTitle", { name: member.name })}</h1>
       <p className="mt-1 mb-6 text-sm text-muted">{t("payHint")}</p>
       <PayBackForm userId={member.id} expenses={expenses} today={today()} />
     </div>

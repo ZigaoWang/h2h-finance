@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ExpenseDetailView } from "@/components/expense-detail";
-import { Card, EmptyState } from "@/components/ui/card";
+import { EmptyState, Panel } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireAdmin } from "@/lib/auth/dal";
 import { cn } from "@/lib/cn";
@@ -33,7 +33,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
 
   return (
     <>
-      <div className={cn(explicit && "max-lg:hidden")}>
+      <div className={cn(explicit && "max-xl:hidden")}>
         <PageHeader
           title={t("title")}
           description={pending.length ? t("summary", { count: pending.length, total: formatMoney(total) }) : t("description")}
@@ -41,13 +41,13 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
       </div>
 
       {pending.length === 0 ? (
-        <Card>
+        <Panel>
           <EmptyState title={t("emptyTitle")} description={t("emptyHint")} />
-        </Card>
+        </Panel>
       ) : (
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-          <Card className={cn("overflow-hidden lg:sticky lg:top-20", explicit && "max-lg:hidden")}>
-            <ul className="divide-y divide-line lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-start">
+          <Panel className={cn("xl:sticky xl:top-10", explicit && "max-xl:hidden")}>
+            <ul className="divide-y divide-line xl:max-h-[calc(100dvh-5rem)] xl:overflow-y-auto">
               {pending.map((e) => {
                 const thumb = thumbs.get(e.id)?.[0];
                 return (
@@ -55,7 +55,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
                     <Link
                       href={`/review?id=${e.id}`}
                       aria-current={e.id === selected ? "true" : undefined}
-                      className="flex gap-3 px-4 py-3 transition-colors hover:bg-subtle/60 lg:aria-[current=true]:bg-subtle"
+                      className="flex gap-3 px-4 py-3 transition-colors hover:bg-subtle/60 xl:aria-[current=true]:bg-subtle"
                     >
                       <div className="h-14 w-10 shrink-0 overflow-hidden rounded border border-line bg-subtle">
                         {thumb && (
@@ -84,11 +84,11 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
                 );
               })}
             </ul>
-          </Card>
+          </Panel>
 
           {selected && (
-            <section className={cn(!explicit && "max-lg:hidden")} aria-label={t("selected")}>
-              <Link href="/review" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink lg:hidden">
+            <section className={cn(!explicit && "max-xl:hidden")} aria-label={t("selected")}>
+              <Link href="/review" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink xl:hidden">
                 <ArrowLeft className="size-4" aria-hidden />
                 {t("backToQueue", { count: pending.length })}
               </Link>

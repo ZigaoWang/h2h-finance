@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { ExpenseForm } from "@/components/expense-form/expense-form";
-import { Card, EmptyState } from "@/components/ui/card";
+import { EmptyState, Panel } from "@/components/ui/card";
 import { activeCategories, activeEvents } from "@/lib/admin";
 import { requireUser } from "@/lib/auth/dal";
 import { today } from "@/lib/dates";
@@ -25,11 +25,11 @@ export default async function NewExpensePage() {
         <ArrowLeft className="size-4" aria-hidden />
         {t("back")}
       </Link>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <h1 className="mb-6 text-[22px] font-semibold tracking-tight">{t("title")}</h1>
       {years.length === 0 ? (
-        <Card>
+        <Panel>
           <EmptyState title={t("noYearTitle")} description={t("noYearHint")} />
-        </Card>
+        </Panel>
       ) : (
         <ExpenseForm
           categories={activeCategories().map(({ id, nameEn, nameZh }) => ({ id, nameEn, nameZh }))}

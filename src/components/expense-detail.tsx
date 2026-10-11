@@ -5,7 +5,7 @@ import { OwnerActions } from "@/components/owner-actions";
 import { ReviewActions, VoidAction } from "@/components/review-actions";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert } from "@/components/ui/alert";
-import { Card } from "@/components/ui/card";
+import { Panel } from "@/components/ui/card";
 import type { SessionUser } from "@/lib/auth/dal";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import type { DuplicateFlag, ExpenseDetail as Detail } from "@/lib/expenses/queries";
@@ -23,9 +23,9 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
       <div className="flex flex-col gap-5 lg:order-2">
-        <Card className="p-5">
+        <Panel className="p-5">
           <div className="flex items-start justify-between gap-4">
-            <p className="num text-3xl font-semibold tracking-tight">
+            <p className="num text-[28px] leading-tight font-semibold tracking-tight">
               <span className={expense.status === "voided" ? "text-faint line-through" : undefined}>{formatMoney(expense.amountCents)}</span>
             </p>
             <StatusBadge status={expense.status} className="mt-1.5" />
@@ -75,7 +75,7 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
               <VoidAction id={expense.id} />
             </div>
           )}
-        </Card>
+        </Panel>
 
         {!inQueue && <History history={history} reimbursement={reimbursement} />}
       </div>
@@ -86,7 +86,7 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
             key={file.id}
             href={`/api/files/${file.id}`}
             target="_blank"
-            className="block overflow-hidden rounded-lg border border-line bg-surface"
+            className="block overflow-hidden rounded-lg border border-line bg-subtle"
             title={t("openOriginal")}
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- private, access-checked files */}
@@ -164,7 +164,7 @@ function History({ history, reimbursement }: { history: Detail["history"]; reimb
   entries.sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (
-    <Card className="p-5">
+    <Panel className="p-5">
       <h3 className="mb-4 text-sm font-semibold">{t("title")}</h3>
       <ol className="relative flex flex-col gap-4 border-l border-line pl-5">
         {entries.map((e) => (
@@ -176,6 +176,6 @@ function History({ history, reimbursement }: { history: Detail["history"]; reimb
           </li>
         ))}
       </ol>
-    </Card>
+    </Panel>
   );
 }

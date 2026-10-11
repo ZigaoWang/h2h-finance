@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ImagePlus, Plus, Sparkles, X } from "lucide-react";
+import { Check, ImagePlus, Plus, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { submitExpensesAction, updateExpenseAction } from "@/app/(app)/expenses/actions";
@@ -225,7 +225,7 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
   }
 
   return (
-    <form id={formId} onSubmit={handleSubmit} noValidate className="flex flex-col gap-8 pb-28">
+    <form id={formId} onSubmit={handleSubmit} noValidate className="flex flex-col gap-10 pb-28">
       <section aria-labelledby={`${formId}-receipts`}>
         <h2 id={`${formId}-receipts`} className="mb-1 text-[15px] font-semibold">
           {t("receipts")}
@@ -253,7 +253,7 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
         {!edit && items.length < MAX_ITEMS && <DropZone compact={items.length > 0} onFiles={addScreenshots} />}
       </section>
 
-      <section aria-labelledby={`${formId}-details`} className="flex flex-col gap-5">
+      <section aria-labelledby={`${formId}-details`} className="flex flex-col gap-5 border-t border-line pt-8">
         <div>
           <h2 id={`${formId}-details`} className="text-[15px] font-semibold">
             {t("details")}
@@ -262,7 +262,7 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
         </div>
 
         <fieldset>
-          <legend className="mb-2 text-sm font-medium">{t("category")}</legend>
+          <legend className="mb-2 text-[13px] font-medium text-ink-2">{t("category")}</legend>
           <div role="radiogroup" aria-label={t("category")} className="flex flex-wrap gap-2">
             {categories.map((c) => (
               <button
@@ -273,8 +273,8 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
                 aria-invalid={showErrors && categoryId === null ? true : undefined}
                 onClick={() => setCategoryId(c.id)}
                 className={cn(
-                  "h-9 rounded-full border px-3.5 text-sm transition-colors",
-                  categoryId === c.id ? "border-ink bg-ink text-white" : "border-line-strong bg-surface text-ink-2 hover:border-faint hover:text-ink",
+                  "h-8 rounded-md border px-3 text-[13px] transition-colors",
+                  categoryId === c.id ? "border-ink bg-ink font-medium text-white" : "border-line-strong bg-surface text-ink-2 hover:border-faint hover:text-ink",
                 )}
               >
                 {localName(locale, c.nameEn, c.nameZh)}
@@ -389,16 +389,17 @@ function DropZone({ compact, onFiles }: { compact: boolean; onFiles: (files: Fil
           type="button"
           onClick={() => inputRef.current?.click()}
           className={cn(
-            "flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-6 py-12 text-center transition-colors",
-            dragging ? "border-ink bg-subtle" : "border-line-strong bg-surface hover:border-faint hover:bg-subtle/60",
+            "flex w-full items-center gap-4 rounded-lg border border-dashed px-5 py-6 text-left transition-colors",
+            dragging ? "border-ink bg-subtle" : "border-line-strong hover:border-faint hover:bg-subtle/60",
           )}
         >
-          <span className="flex size-11 items-center justify-center rounded-full bg-subtle text-ink-2">
-            <ImagePlus className="size-5" aria-hidden />
+          <ImagePlus className="size-6 shrink-0 text-muted" strokeWidth={1.5} aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-medium">{t("addScreenshots")}</span>
+            <span className="mt-0.5 block text-[13px] text-muted">{t("addScreenshotsHint")}</span>
           </span>
-          <span>
-            <span className="block text-[15px] font-medium">{t("addScreenshots")}</span>
-            <span className="mt-1 block text-sm text-muted">{t("addScreenshotsHint")}</span>
+          <span className="hidden h-8 shrink-0 items-center rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium sm:inline-flex">
+            {t("choose")}
           </span>
         </button>
       )}
@@ -433,12 +434,12 @@ function ItemCard({
   const id = useId();
   const photoInput = useRef<HTMLInputElement>(null);
   const reading = item.photos.some((p) => p.status === "uploading") && !item.amount;
-  const autoHint = <Sparkles className="size-3 text-faint" aria-label={t("autoFilled")} />;
+  const autoFilled = item.auto.amount || item.auto.merchant || item.auto.spentOn;
 
   return (
-    <article className="rounded-lg border border-line bg-surface p-3 sm:p-4" aria-label={t("itemLabel", { number: index + 1 })}>
-      <div className="flex gap-3 sm:gap-4">
-        <div className="flex w-[72px] shrink-0 flex-col gap-2 sm:w-24">
+    <article className="rounded-lg border border-line bg-surface p-4" aria-label={t("itemLabel", { number: index + 1 })}>
+      <div className="flex gap-4">
+        <div className="flex w-16 shrink-0 flex-col gap-2 sm:w-20">
           {item.photos.map((photo) => (
             <div key={photo.key} className="group relative">
               <button
@@ -499,9 +500,17 @@ function ItemCard({
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-[13px] text-muted">{count > 1 ? t("itemLabel", { number: index + 1 }) : t("payment")}</p>
+        <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-[150px_minmax(0,1fr)_160px] sm:gap-x-3">
+          <div className="flex items-start justify-between gap-2 sm:col-span-3">
+            <p className="flex items-center gap-1.5 text-[13px] text-muted">
+              <span className="font-medium text-ink">{count > 1 ? t("itemLabel", { number: index + 1 }) : t("payment")}</span>
+              {autoFilled && (
+                <span className="inline-flex items-center gap-1">
+                  · <Check className="size-3.5 text-paid" aria-hidden />
+                  {t("autoFilled")}
+                </span>
+              )}
+            </p>
             {onRemove && (
               <button type="button" onClick={onRemove} aria-label={t("removeItem")} className="-m-1.5 rounded-md p-1.5 text-faint hover:bg-subtle hover:text-ink">
                 <X className="size-4" aria-hidden />
@@ -509,7 +518,7 @@ function ItemCard({
             )}
           </div>
 
-          <Field label={<span className="inline-flex items-center gap-1.5">{t("amount")}{item.auto.amount && autoHint}</span>} htmlFor={`${id}-amount`} error={errors?.amount}>
+          <Field label={t("amount")} htmlFor={`${id}-amount`} error={errors?.amount}>
             <div className="relative">
               <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted">¥</span>
               <Input
@@ -520,11 +529,11 @@ function ItemCard({
                 onChange={(e) => onChange({ amount: e.target.value })}
                 placeholder={reading ? t("reading") : "0.00"}
                 aria-invalid={!!errors?.amount}
-                className="num pl-7 text-base font-medium"
+                className="num pl-7 font-medium"
               />
             </div>
           </Field>
-          <Field label={<span className="inline-flex items-center gap-1.5">{t("merchant")}{item.auto.merchant && autoHint}</span>} htmlFor={`${id}-merchant`} error={errors?.merchant}>
+          <Field label={t("merchant")} htmlFor={`${id}-merchant`} error={errors?.merchant}>
             <Input
               id={`${id}-merchant`}
               value={item.merchant}
@@ -534,7 +543,7 @@ function ItemCard({
               aria-invalid={!!errors?.merchant}
             />
           </Field>
-          <Field label={<span className="inline-flex items-center gap-1.5">{t("date")}{item.auto.spentOn && autoHint}</span>} htmlFor={`${id}-date`} error={errors?.spentOn}>
+          <Field label={t("date")} htmlFor={`${id}-date`} error={errors?.spentOn}>
             <Input id={`${id}-date`} type="date" max={today} value={item.spentOn} onChange={(e) => onChange({ spentOn: e.target.value })} aria-invalid={!!errors?.spentOn} />
           </Field>
         </div>

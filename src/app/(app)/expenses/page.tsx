@@ -3,13 +3,13 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ExpenseList } from "@/components/expense-list";
 import { ButtonLink } from "@/components/ui/button";
-import { Card, EmptyState } from "@/components/ui/card";
+import { EmptyState, Panel } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/dal";
+import { cn } from "@/lib/cn";
 import { EXPENSE_STATUSES, type ExpenseStatus } from "@/lib/db/schema";
 import { listOwnExpenses } from "@/lib/expenses/queries";
 import { formatMoney } from "@/lib/money";
-import { cn } from "@/lib/cn";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -34,35 +34,35 @@ export default async function MyExpensesPage({ searchParams }: PageProps<"/expen
     <>
       <PageHeader title={t("title")} description={t("description")} />
 
-      <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Stat label={t("awaitingReview")} value={formatMoney(sumOf("pending"))} />
-        <Stat label={t("awaitingPayback")} value={formatMoney(sumOf("approved"))} />
-        <Stat label={t("paidBack")} value={formatMoney(sumOf("reimbursed"))} className="max-sm:hidden" />
-      </dl>
+      <Panel className="mb-10 grid grid-cols-3 divide-x divide-line">
+        <Figure label={t("awaitingReview")} value={formatMoney(sumOf("pending"))} />
+        <Figure label={t("awaitingPayback")} value={formatMoney(sumOf("approved"))} />
+        <Figure label={t("paidBack")} value={formatMoney(sumOf("reimbursed"))} />
+      </Panel>
 
-      <Card>
-        <nav className="flex gap-1 overflow-x-auto border-b border-line px-3 py-2" aria-label={t("filter")}>
-          {FILTERS.map((f) => {
-            const active = (f === "all" && !status) || f === status;
-            const count = f === "all" ? all.length : countOf(f);
-            return (
-              <Link
-                key={f}
-                href={f === "all" ? "/expenses" : `/expenses?status=${f}`}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-sm",
-                  active ? "bg-subtle font-medium text-ink" : "text-muted hover:text-ink",
-                )}
-              >
-                {f === "all" ? t("all") : ts(f)}
-                <span className="num text-xs text-faint">{count}</span>
-              </Link>
-            );
-          })}
-        </nav>
+      <nav className="mb-3 flex gap-1 overflow-x-auto" aria-label={t("filter")}>
+        {FILTERS.map((f) => {
+          const active = (f === "all" && !status) || f === status;
+          return (
+            <Link
+              key={f}
+              href={f === "all" ? "/expenses" : `/expenses?status=${f}`}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-3 text-[13px] transition-colors",
+                active ? "bg-ink font-medium text-white" : "text-ink-2 hover:bg-subtle",
+              )}
+            >
+              {f === "all" ? t("all") : ts(f)}
+              <span className={cn("num text-xs", active ? "text-white/60" : "text-faint")}>{f === "all" ? all.length : countOf(f)}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <Panel>
         {shown.length ? (
-          <ExpenseList items={shown} href={(item) => `/expenses/${item.id}`} />
+          <ExpenseList items={shown} href={(item) => `/expenses/${item.id}`} showMember={false} />
         ) : (
           <EmptyState
             title={status ? t("emptyFiltered") : t("empty")}
@@ -70,16 +70,16 @@ export default async function MyExpensesPage({ searchParams }: PageProps<"/expen
             action={!status && <ButtonLink href="/expenses/new">{t("new")}</ButtonLink>}
           />
         )}
-      </Card>
+      </Panel>
     </>
   );
 }
 
-function Stat({ label, value, className }: { label: string; value: string; className?: string }) {
+function Figure({ label, value }: { label: string; value: string }) {
   return (
-    <div className={cn("rounded-lg border border-line bg-surface px-4 py-3", className)}>
-      <dt className="text-[13px] text-muted">{label}</dt>
-      <dd className="num mt-0.5 text-lg font-semibold">{value}</dd>
+    <div className="min-w-0 px-4 py-4 sm:px-5">
+      <p className="truncate text-xs text-muted sm:text-[13px]">{label}</p>
+      <p className="num mt-1 truncate text-[15px] font-semibold tracking-tight sm:text-lg">{value}</p>
     </div>
   );
 }

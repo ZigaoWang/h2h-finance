@@ -8,7 +8,7 @@ import { createReimbursementAction } from "@/app/(app)/expenses/actions";
 import { uploadImage, type UploadFailure } from "@/components/expense-form/upload";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, EmptyState } from "@/components/ui/card";
+import { EmptyState, Panel } from "@/components/ui/card";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { useAction } from "@/hooks/use-action";
@@ -33,9 +33,9 @@ export function PayBackForm({ userId, expenses, today }: { userId: number; expen
 
   if (expenses.length === 0) {
     return (
-      <Card>
+      <Panel>
         <EmptyState title={t("nothingOwed")} />
-      </Card>
+      </Panel>
     );
   }
 
@@ -67,8 +67,8 @@ export function PayBackForm({ userId, expenses, today }: { userId: number; expen
       }}
       className="flex flex-col gap-6"
     >
-      <Card>
-        <div className="flex items-center justify-between border-b border-line px-5 py-3">
+      <Panel>
+        <div className="flex items-center justify-between border-b border-line px-4 py-3">
           <p className="text-sm font-medium">{t("selectExpenses")}</p>
           <button
             type="button"
@@ -81,7 +81,7 @@ export function PayBackForm({ userId, expenses, today }: { userId: number; expen
         <ul className="divide-y divide-line">
           {expenses.map((e) => (
             <li key={e.id}>
-              <label className="flex cursor-pointer items-center gap-4 px-5 py-3 hover:bg-subtle/60">
+              <label className="flex cursor-pointer items-center gap-4 px-4 py-3 hover:bg-subtle/60">
                 <input type="checkbox" checked={selected.has(e.id)} onChange={() => toggle(e.id)} className="size-4 accent-ink" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px]">{e.description}</p>
@@ -94,11 +94,11 @@ export function PayBackForm({ userId, expenses, today }: { userId: number; expen
             </li>
           ))}
         </ul>
-        <div className="flex items-center justify-between border-t border-line bg-subtle/50 px-5 py-3">
+        <div className="flex items-center justify-between border-t border-line bg-subtle/50 px-4 py-3">
           <p className="text-sm text-muted">{t("selectedCount", { count: selected.size })}</p>
           <p className="num text-lg font-semibold">{formatMoney(total)}</p>
         </div>
-      </Card>
+      </Panel>
 
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium">{t("transfer")}</p>

@@ -3,8 +3,8 @@ import { AlertCircle, AlertTriangle, Info } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const TONES = {
-  error: { box: "border-danger/25 bg-danger-bg text-danger", Icon: AlertCircle },
-  warning: { box: "border-pending/25 bg-pending-bg text-pending", Icon: AlertTriangle },
+  error: { box: "border-danger/20 bg-danger-bg text-danger", Icon: AlertCircle },
+  warning: { box: "border-pending/20 bg-warning-bg text-pending", Icon: AlertTriangle },
   info: { box: "border-line bg-subtle text-ink-2", Icon: Info },
 };
 

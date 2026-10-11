@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { StatusBadge } from "@/components/status-badge";
+import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/dates";
 import type { ExpenseStatus } from "@/lib/db/schema";
 import { localName } from "@/lib/i18n-names";
 import { formatMoney } from "@/lib/money";
-import { cn } from "@/lib/cn";
 
 export type ListItem = {
   id: number;
@@ -24,49 +23,99 @@ export type ListItem = {
 };
 
 /**
- * One row per expense: what it was and the amount up front, the context underneath.
- * Rows link to the detail page when `href` is given.
+ * Expenses as a table on wider screens and as compact rows on phones.
+ * Rows link to the detail page when `href` returns a path.
  */
-export function ExpenseList({ items, href, showStatus = true }: { items: ListItem[]; href?: (item: ListItem) => string | undefined; showStatus?: boolean }) {
+export function ExpenseList({
+  items,
+  href,
+  showStatus = true,
+  showMember = true,
+}: {
+  items: ListItem[];
+  href?: (item: ListItem) => string | undefined;
+  showStatus?: boolean;
+  showMember?: boolean;
+}) {
+  const t = useTranslations("table");
   const locale = useLocale();
+  const category = (i: ListItem) => localName(locale, i.categoryEn, i.categoryZh);
+  const event = (i: ListItem) => (i.eventEn || i.eventZh ? localName(locale, i.eventEn, i.eventZh) : null);
+  const member = showMember && items.some((i) => i.userName);
+  const amount = (i: ListItem) => (
+    <span className={cn("num font-medium whitespace-nowrap", i.status === "voided" && "text-faint line-through")}>{formatMoney(i.amountCents)}</span>
+  );
+
   return (
-    <ul className="divide-y divide-line">
-      {items.map((item) => {
-        const meta = [
-          formatDate(item.spentOn, locale),
-          localName(locale, item.categoryEn, item.categoryZh),
-          item.eventEn || item.eventZh ? localName(locale, item.eventEn, item.eventZh) : null,
-          item.userName,
-          item.merchant,
-        ].filter(Boolean);
-        const link = href?.(item);
-        const body = (
-          <>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[15px] font-medium">{item.description}</p>
-              <p className="mt-0.5 truncate text-[13px] text-muted">{meta.join(" · ")}</p>
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-1">
-              <span className={cn("num text-[15px] font-medium", item.status === "voided" && "text-faint line-through")}>
-                {formatMoney(item.amountCents)}
-              </span>
-              {showStatus && item.status && <StatusBadge status={item.status} />}
-            </div>
-            {link && <ChevronRight className="hidden size-4 shrink-0 text-faint sm:block" aria-hidden />}
-          </>
-        );
-        return (
-          <li key={item.id}>
-            {link ? (
-              <Link href={link} className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-subtle/60">
-                {body}
-              </Link>
-            ) : (
-              <div className="flex items-center gap-4 px-5 py-3.5">{body}</div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <>
+      <table className="hidden w-full table-fixed text-sm md:table">
+        <thead>
+          <tr className="border-b border-line text-left text-xs text-muted">
+            <th className="w-[100px] py-2.5 pl-4 font-medium">{t("date")}</th>
+            <th className="py-2.5 pl-3 font-medium">{t("description")}</th>
+            <th className="w-[13%] py-2.5 pl-3 font-medium">{t("category")}</th>
+            <th className="w-[15%] py-2.5 pl-3 font-medium">{t("event")}</th>
+            {member && <th className="w-[12%] py-2.5 pl-3 font-medium">{t("member")}</th>}
+            <th className="w-[112px] py-2.5 pr-4 pl-3 text-right font-medium">{t("amount")}</th>
+            {showStatus && <th className="w-[112px] py-2.5 pr-4 font-medium">{t("status")}</th>}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-line">
+          {items.map((item) => {
+            const link = href?.(item);
+            return (
+              <tr key={item.id} className={cn("relative", link && "transition-colors hover:bg-subtle/70")}>
+                <td className="num py-3 pl-4 whitespace-nowrap text-muted">{formatDate(item.spentOn, locale)}</td>
+                <td className="py-3 pl-3">
+                  {link ? (
+                    <Link href={link} className="block truncate font-medium after:absolute after:inset-0">
+                      {item.description}
+                    </Link>
+                  ) : (
+                    <span className="block truncate font-medium">{item.description}</span>
+                  )}
+                  {item.merchant && <span className="block truncate text-xs text-muted">{item.merchant}</span>}
+                </td>
+                <td className="truncate py-3 pl-3 text-ink-2">{category(item)}</td>
+                <td className="truncate py-3 pl-3 text-ink-2">{event(item) ?? <span className="text-faint">—</span>}</td>
+                {member && <td className="truncate py-3 pl-3 text-ink-2">{item.userName}</td>}
+                <td className="py-3 pr-4 pl-3 text-right">{amount(item)}</td>
+                {showStatus && <td className="py-3 pr-4">{item.status && <StatusBadge status={item.status} />}</td>}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <ul className="divide-y divide-line md:hidden">
+        {items.map((item) => {
+          const link = href?.(item);
+          const meta = [formatDate(item.spentOn, locale), category(item), event(item), member ? item.userName : null].filter(Boolean).join(" · ");
+          const body = (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{item.description}</p>
+                <p className="mt-0.5 truncate text-xs text-muted">{meta}</p>
+              </div>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                {amount(item)}
+                {showStatus && item.status && <StatusBadge status={item.status} className="text-xs" />}
+              </div>
+            </>
+          );
+          return (
+            <li key={item.id}>
+              {link ? (
+                <Link href={link} className="flex items-center gap-4 px-4 py-3 active:bg-subtle">
+                  {body}
+                </Link>
+              ) : (
+                <div className="flex items-center gap-4 px-4 py-3">{body}</div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }

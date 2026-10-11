@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Card, CardHeader, EmptyState } from "@/components/ui/card";
+import { EmptyState, Panel, Section } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireAdmin } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/dates";
@@ -26,14 +26,14 @@ export default async function ReimbursePage() {
   return (
     <>
       <PageHeader title={t("title")} description={owed.length ? t("summary", { total: formatMoney(total), count: owed.length }) : t("description")} />
-      <div className="flex flex-col gap-6">
-        <Card>
-          <CardHeader title={t("owedTitle")} description={t("owedHint")} />
+      <div className="flex flex-col gap-10">
+        <Section title={t("owedTitle")} description={t("owedHint")}>
+          <Panel>
           {owed.length ? (
             <ul className="divide-y divide-line">
               {owed.map((o) => (
                 <li key={o.userId}>
-                  <Link href={`/reimburse/${o.userId}`} className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-subtle/60">
+                  <Link href={`/reimburse/${o.userId}`} className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-subtle/60">
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{o.name}</p>
                       <p className="text-[13px] text-muted">{t("expenses", { count: o.count })}</p>
@@ -47,14 +47,15 @@ export default async function ReimbursePage() {
           ) : (
             <EmptyState title={t("nobodyOwed")} description={t("nobodyOwedHint")} />
           )}
-        </Card>
+          </Panel>
+        </Section>
 
-        <Card>
-          <CardHeader title={t("historyTitle")} />
+        <Section title={t("historyTitle")}>
+          <Panel>
           {history.length ? (
             <ul className="divide-y divide-line">
               {history.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3.5">
+                <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{r.payee}</p>
                     <p className="text-[13px] text-muted">
@@ -74,7 +75,8 @@ export default async function ReimbursePage() {
           ) : (
             <EmptyState title={t("noHistory")} />
           )}
-        </Card>
+          </Panel>
+        </Section>
       </div>
     </>
   );

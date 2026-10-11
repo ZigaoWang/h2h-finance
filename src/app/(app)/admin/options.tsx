@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, EmptyState } from "@/components/ui/card";
+import { EmptyState, Panel, Section } from "@/components/ui/card";
 import { Dialog, DialogActions } from "@/components/ui/dialog";
 import { Field, Input } from "@/components/ui/field";
 import { useAction } from "@/hooks/use-action";
@@ -26,8 +26,8 @@ const ACTIONS: Record<Kind, { save: (i: Record<string, string>) => Promise<Actio
 export function OptionsManager({ kind, options }: { kind: Kind; options: Option[] }) {
   const t = useTranslations(`admin.${kind}`);
   return (
-    <Card>
-      <CardHeader title={t("title")} description={t("description")} action={<OptionDialogButton kind={kind} />} />
+    <Section title={t("title")} description={t("description")} action={<OptionDialogButton kind={kind} />}>
+      <Panel>
       {options.length === 0 ? (
         <EmptyState title={t("empty")} />
       ) : (
@@ -37,7 +37,8 @@ export function OptionsManager({ kind, options }: { kind: Kind; options: Option[
           ))}
         </ul>
       )}
-    </Card>
+      </Panel>
+    </Section>
   );
 }
 
@@ -47,7 +48,7 @@ function OptionRow({ kind, option }: { kind: Kind; option: Option }) {
   const archive = useAction(ACTIONS[kind].archive, { success: option.archived ? t("restored") : t("archived") });
 
   return (
-    <li className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5", option.archived && "bg-subtle/50")}>
+    <li className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3", option.archived && "bg-subtle/50")}>
       <div className="min-w-0 flex-1">
         <p className={cn("font-medium", option.archived && "text-muted")}>
           {option.nameEn}

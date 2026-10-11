@@ -35,7 +35,7 @@ export default async function EditExpensePage({ params }: PageProps<"/expenses/[
         <ArrowLeft className="size-4" aria-hidden />
         {t("title", { id })}
       </Link>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">{t("editTitle")}</h1>
+      <h1 className="mb-6 text-[22px] font-semibold tracking-tight">{t("editTitle")}</h1>
       {expense.status === "rejected" && (
         <Alert title={t("rejectedTitle")} className="mb-6">
           {expense.rejectionReason}

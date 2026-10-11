@@ -1,9 +1,10 @@
 import { useLocale, useTranslations } from "next-intl";
+import { Panel } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/money";
 import type { YearSummary } from "@/lib/stats";
-import { cn } from "@/lib/cn";
 
-/** Hero: how much of the budget is spent, then the figures that follow from it. */
+/** The year at a glance: spent against budget, then the figures that follow from it. */
 export function BudgetOverview({ summary, showOwed }: { summary: YearSummary; showOwed: boolean }) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
@@ -11,52 +12,52 @@ export function BudgetOverview({ summary, showOwed }: { summary: YearSummary; sh
   const share = budgetCents > 0 ? spent.cents / budgetCents : 0;
   const over = remainingCents < 0;
   const percent = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en", { style: "percent", maximumFractionDigits: 0 });
+  const shareLabel = share > 0 && share < 0.01 ? `<${percent.format(0.01)}` : percent.format(share);
 
   return (
-    <section className="rounded-lg border border-line bg-surface">
-      <div className="px-5 pt-5 pb-6 sm:px-6">
-        <p className="text-sm text-muted">{t("spent")}</p>
-        <p className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span className="text-4xl font-semibold tracking-tight sm:text-5xl">{formatMoney(spent.cents)}</span>
-          <span className="text-sm text-muted">{t("ofBudget", { budget: formatMoney(budgetCents) })}</span>
-        </p>
+    <Panel className="grid grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))]">
+      <div className="col-span-2 border-b border-line p-5 lg:col-span-1 lg:border-r lg:border-b-0">
+        <p className="text-[13px] text-muted">{t("spent")}</p>
+        <p className="num mt-1 text-[28px] leading-tight font-semibold tracking-tight">{formatMoney(spent.cents)}</p>
         <div
-          className="mt-5 h-2 overflow-hidden rounded-full bg-subtle"
+          className="mt-4 h-1.5 overflow-hidden rounded-full bg-subtle"
           role="meter"
           aria-label={t("budgetUsed")}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(share * 100)}
         >
-          <div
-            className={cn("h-full rounded-full", over ? "bg-danger" : "bg-ink")}
-            style={{ width: `${Math.min(100, share * 100)}%` }}
-          />
+          <div className={cn("h-full rounded-full", over ? "bg-danger" : "bg-ink")} style={{ width: `${Math.min(100, share * 100)}%` }} />
         </div>
         <p className="mt-2 text-[13px] text-muted">
-          {budgetCents > 0
-            ? t("budgetUsedShare", { share: share > 0 && share < 0.01 ? `<${percent.format(0.01)}` : percent.format(share) })
-            : t("noBudget")}
+          {budgetCents > 0 ? t("ofBudgetShare", { budget: formatMoney(budgetCents), share: shareLabel }) : t("noBudget")}
         </p>
       </div>
-      <dl className={cn("grid grid-cols-2 border-t border-line", showOwed ? "sm:grid-cols-4" : "sm:grid-cols-3")}>
-        <Figure label={t("remaining")} value={formatMoney(remainingCents)} tone={over ? "danger" : undefined} />
-        <Figure label={t("expenseCount")} value={String(spent.count)} />
-        <Figure label={t("pendingReview")} value={formatMoney(summary.pending.cents)} hint={t("items", { count: summary.pending.count })} />
-        {showOwed && (
-          <Figure label={t("owed")} value={formatMoney(summary.owed.cents)} hint={t("items", { count: summary.owed.count })} />
-        )}
-      </dl>
-    </section>
+      <Figure label={t("remaining")} value={formatMoney(remainingCents)} tone={over ? "danger" : undefined} className="border-r border-line" />
+      <Figure
+        label={t("pendingReview")}
+        value={formatMoney(summary.pending.cents)}
+        hint={t("items", { count: summary.pending.count })}
+        className={cn(showOwed && "max-lg:border-b max-lg:border-line lg:border-r lg:border-line")}
+      />
+      {showOwed && (
+        <Figure
+          label={t("owed")}
+          value={formatMoney(summary.owed.cents)}
+          hint={t("items", { count: summary.owed.count })}
+          className="max-lg:col-span-2"
+        />
+      )}
+    </Panel>
   );
 }
 
-function Figure({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "danger" }) {
+function Figure({ label, value, hint, tone, className }: { label: string; value: string; hint?: string; tone?: "danger"; className?: string }) {
   return (
-    <div className="border-line px-5 py-4 not-last:border-r max-sm:nth-[2n]:border-r-0 max-sm:nth-[n+3]:border-t sm:px-6">
-      <dt className="text-[13px] text-muted">{label}</dt>
-      <dd className={cn("mt-1 text-lg font-semibold tracking-tight", tone === "danger" && "text-danger")}>{value}</dd>
-      {hint && <dd className="text-xs text-faint">{hint}</dd>}
+    <div className={cn("p-5", className)}>
+      <p className="text-[13px] text-muted">{label}</p>
+      <p className={cn("num mt-1 text-lg font-semibold tracking-tight", tone === "danger" && "text-danger")}>{value}</p>
+      {hint && <p className="mt-0.5 text-xs text-faint">{hint}</p>}
     </div>
   );
 }

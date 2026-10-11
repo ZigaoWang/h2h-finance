@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from "next-intl";
-import { Card, CardHeader } from "@/components/ui/card";
+import { Panel, Section } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/money";
 
@@ -20,10 +20,9 @@ export function MonthlyChart({ data, className }: { data: { month: string; cents
     );
 
   return (
-    <Card className={className}>
-      <CardHeader title={t("byMonth")} />
-      <div className="px-5 pt-6 pb-4">
-        <div className="relative flex h-44 items-end gap-0.5 border-b border-line">
+    <Section title={t("byMonth")} className={className}>
+      <Panel className="overflow-visible px-5 pt-7 pb-4">
+        <div className="relative flex h-40 items-end gap-0.5 border-b border-line">
           {max > 0 && (
             <>
               <span className="num absolute -top-4 left-0 text-[11px] text-faint">{compact(max, locale)}</span>
@@ -38,7 +37,7 @@ export function MonthlyChart({ data, className }: { data: { month: string; cents
               className="group flex h-full flex-1 items-end justify-center focus:outline-none"
             >
               <div
-                className="relative w-full max-w-6 rounded-t-[4px] bg-ink-2 transition-colors group-hover:bg-ink group-focus-visible:bg-ink"
+                className="relative w-full max-w-6 rounded-t-[4px] bg-ink/80 transition-colors group-hover:bg-ink group-focus-visible:bg-ink"
                 style={{ height: max ? `${(d.cents / max) * 100}%` : 0, minHeight: d.cents > 0 ? 2 : 0 }}
               >
                 <div
@@ -61,7 +60,7 @@ export function MonthlyChart({ data, className }: { data: { month: string; cents
             </span>
           ))}
         </div>
-      </div>
-    </Card>
+      </Panel>
+    </Section>
   );
 }
