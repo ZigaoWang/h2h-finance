@@ -1,20 +1,19 @@
 # H2H Finance
 
-Budget, expenses and reimbursements for Heart to Heart, the student charity at YK Pao School that funds heart surgery for children.
+Budget and spending for Heart to Heart, the student charity at YK Pao School that funds heart surgery for children.
 
-The home page is a public view of the budget and spending for donors and sponsors, without receipts, names or private notes. Members sign in to submit payment screenshots from their phones; the amount, shop and date are read from the screenshot automatically. The club lead reviews each expense next to its proof, pays members back, and at the end of the year downloads one zip with a spreadsheet of every expense and every receipt.
+The home page is a public view of the budget and spending for donors and sponsors, without receipts, names, shops or private notes. Members sign in to add expenses from their phones: they upload the payment screenshot and the amount, shop, date and transaction number are read from it automatically. At the end of the year an admin downloads one zip with a spreadsheet of every expense and every receipt.
 
 ## What it does
 
-- **Simple sign-in.** Members enter the team password, then pick their name from the member list, or add it if they're new (at most 10 new names a day; the admin can rename or remove anyone). The list only appears after the password, so names stay private. Any number of members can be admins; they also enter the admin password. A device stays signed in for 90 days of use. Wrong passwords are throttled per IP; changing the team password signs everyone out. Every sign-in is recorded in the audit log.
-- **Fast submission.** Pick several screenshots at once; each becomes one expense with its amount, shop and date filled in by OCR (WeChat Pay, Alipay, shopping apps; Chinese and English). Choose a category, optionally an event, say what it was for, submit.
-- **Duplicate detection.** Every upload is checked against earlier proof by exact hash and by a perceptual hash (catches re-saved or recompressed screenshots), and against expenses with the same amount, shop and date. Members see a warning; reviewers see the match.
-- **Review and pay back.** Admins approve or reject (with a reason) from a queue with the screenshot beside the details. Paying back means selecting a member's approved expenses and attaching the transfer screenshot; the transfer amount is checked against the total.
-- **Records that can't be quietly changed.** Once approved, an expense can't be edited or deleted. A mistaken approval can only be *voided*, which keeps it on record with a reason. Reimbursements and the audit log are append-only. These rules are enforced by SQLite triggers (`drizzle/0001_integrity.sql`) as well as in the app, so not even a manual database session can rewrite history.
-- **Private proof.** Receipts are only visible to admins and the member who submitted them; transfer screenshots to admins and the member who was paid. Image metadata (including location) is stripped on upload.
-- **Dashboard.** Budget, spending, remaining, pending and owed amounts, broken down by category, event, person and month.
+- **Simple sign-in.** Members enter the team password, then find their name in the list or add it if they're new (at most 10 new names a day). The list only appears after the password, so names stay private. Admins also enter the admin password. A device stays signed in for 90 days of use; wrong passwords are throttled per IP, and changing the team password signs everyone out. Every sign-in is recorded.
+- **Fast submission.** Pick several screenshots at once; each becomes an expense with its amount, shop, date and transaction number read by OCR (WeChat Pay, Alipay, shopping apps; Chinese and English). Each screenshot is read at three sizes and the readings vote, using Tesseract's confidence, so a garbled read is left blank rather than filled in wrong. Expenses count as soon as they're submitted; the club trusts its members.
+- **Duplicate and mismatch warnings.** Uploads are checked against earlier receipts by exact hash, perceptual hash and transaction number, and expenses whose amount or date differ from their screenshot are flagged. The transaction number embeds the payment date, which catches mistyped dates.
+- **Nothing changes quietly.** Members can edit or delete their own expenses and admins anyone's, but every change is listed in the expense's history with who made it, deleted expenses stay on record (and can be restored), and the database itself keeps every earlier version of every expense (`drizzle/0003_editable-history.sql`). The audit log is append-only.
+- **Private proof.** Receipts are only visible to admins and the member who submitted them. Image metadata (including location) is stripped on upload.
+- **Dashboard.** Spending against the budget and against how much of the year has gone, average and largest expense, this month against last, and breakdowns by category, event, person and month. Admins can search and filter every expense.
 - **Public home page.** `/` shows the budget, totals and breakdowns; it can be switched off in Settings.
-- **Year-end pack.** Admin → Budget → *Year-end pack* downloads a zip containing a spreadsheet (summary, every expense, reimbursements, audit log) and every receipt and transfer screenshot, named to match the spreadsheet rows.
+- **Year-end pack.** Settings → Budget → *Year-end pack* downloads a zip with a spreadsheet (summary, every expense, audit log) and every receipt, named to match the spreadsheet rows.
 - **English and Chinese** throughout, including the export.
 
 ## Stack
@@ -36,7 +35,7 @@ npm run dev
 Open http://localhost:3000/login. The first visit goes to a one-time setup page where you enter your name, the admin password and the team password.
 
 ```sh
-npm test          # unit tests (receipt parsing, money)
+npm test          # unit tests (receipt parsing, money, database rules)
 npm run typecheck
 npm run lint
 ```
@@ -54,7 +53,7 @@ mkdir -p data && sudo chown 1001:1001 data
 docker compose up -d --build
 ```
 
-Then open `/login` straight away and complete the one-time setup (your name, admin password, team password). Until that's done, whoever opens the site first can do it.
+Then open `/login` straight away and complete the one-time setup (your name, admin password, team password). Until that's done, whoever opens the site first can do it. Add the other admins in Settings → Members.
 
 In mainland China, use an npm mirror for the build:
 
@@ -112,11 +111,12 @@ drizzle/              SQL migrations, including the integrity triggers
 messages/             English and Chinese text
 scripts/backup.mjs    Database snapshot
 src/app/              Pages, server actions and API routes
-  (app)/              Signed-in area: dashboard, expenses, review, pay back, admin
-  transparency/       Public page
+  (app)/              Signed-in area: dashboard, expenses, all expenses, settings
+  page.tsx            Public home page
+  setup/, login/      First-run setup and sign-in
   api/                Uploads, private file access, export, health check
 src/components/       UI
 src/lib/              Domain logic: auth, expenses, files and OCR, stats, export
 ```
 
-Every server action and route checks the session itself; nothing relies on page layouts for authorization. Expected failures (a locked expense, a rate limit) come back as error codes that the UI translates.
+Every server action and route checks the session itself; nothing relies on page layouts for authorization. Expected failures (a deleted expense, a rate limit) come back as error codes that the UI translates.
