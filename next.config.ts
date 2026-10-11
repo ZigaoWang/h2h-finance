@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   serverExternalPackages: ["tesseract.js", "exceljs", "archiver"],
   outputFileTracingIncludes: {
-    "/api/uploads": ["./node_modules/@tesseract.js-data/*/4.0.0/*"],
+    "/api/uploads": ["./node_modules/@tesseract.js-data/*/4.0.0_best_int/*"],
   },
   experimental: {
     serverActions: { bodySizeLimit: "1mb" },
