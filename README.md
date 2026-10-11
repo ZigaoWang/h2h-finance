@@ -120,3 +120,9 @@ src/lib/              Domain logic: auth, expenses, files and OCR, stats, export
 ```
 
 Every server action and route checks the session itself; nothing relies on page layouts for authorization. Expected failures (a deleted expense, a rate limit) come back as error codes that the UI translates.
+
+## License
+
+Copyright © 2026 Zigao Wang. Licensed under the [GNU Affero General Public License v3.0 or later](LICENSE).
+
+You're welcome to run this for your own club or charity and to change it. If you run a modified version where others can use it, the AGPL asks you to share your changes under the same license, so improvements stay open for everyone.

@@ -2,6 +2,13 @@
   "name": "h2h-finance",
   "version": "0.1.0",
   "private": true,
+  "description": "Budget and spending for Heart to Heart, a student charity at YK Pao School.",
+  "license": "AGPL-3.0-or-later",
+  "author": "Zigao Wang (https://www.zigao.wang)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZigaoWang/h2h-finance.git"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
