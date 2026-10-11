@@ -51,11 +51,13 @@ async function recognize(image: Buffer, width: number): Promise<OcrLine[]> {
 }
 
 // No single scale reads every screenshot: the headline amount is huge and thin and Tesseract
-// can miss it at full size, while small print needs the detail. Read at two widths and combine.
+// can miss it at full size, while small print needs the detail. Three widths let the
+// readings outvote a single misread.
 async function read(image: Buffer): Promise<OcrResult> {
   const small = await recognize(image, 700);
+  const medium = await recognize(image, 950);
   const large = await recognize(image, 1200);
-  return combineReadings([small, large]);
+  return combineReadings([small, medium, large]);
 }
 
 /** Best-effort: reads amount, merchant and date from a payment screenshot. Never throws. */

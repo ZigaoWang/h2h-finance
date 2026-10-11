@@ -9,7 +9,10 @@ export type OcrLine = { text: string; confidence: number };
 
 // Lines read with less confidence than this are too likely to be garbled to fill a field.
 const MIN_CONFIDENCE = 80;
-// When two readings disagree, the more confident one wins only by a clear margin.
+// The big headline amount reads with low confidence even when right, but it must match a strict
+// money format to count at all, so a lower bar is safe there.
+const MIN_HEADLINE_AMOUNT_CONFIDENCE = 50;
+// When readings disagree evenly, the most confident one wins only by a clear margin.
 const DECISIVE_MARGIN = 8;
 
 const CJK = "\\u3400-\\u9fff\\uff00-\\uffef\\u3000-\\u303f";
@@ -165,17 +168,21 @@ function analyse(raw: OcrLine[]): Reading {
 }
 
 /**
- * One value from several readings. Unsure reads are ignored; if the confident ones
- * disagree, the most confident wins only by a clear margin, otherwise nothing does.
+ * One value from several readings. Unsure reads are ignored. Among the rest, the value most
+ * readings agree on wins; an even split goes to the most confident only by a clear margin.
  */
-function pick<T>(fields: Field<T>[]): T | undefined {
-  const sure = fields
-    .filter((f): f is Candidate<T> => !!f && f.confidence >= MIN_CONFIDENCE)
-    .sort((a, b) => b.confidence - a.confidence);
-  if (!sure.length) return undefined;
-  const [best, ...rest] = sure;
-  const rival = rest.find((f) => f.value !== best.value);
-  return !rival || best.confidence - rival.confidence >= DECISIVE_MARGIN ? best.value : undefined;
+function pick<T>(fields: Field<T>[], minConfidence = MIN_CONFIDENCE): T | undefined {
+  const votes = new Map<T, { count: number; best: number }>();
+  for (const f of fields) {
+    if (!f || f.confidence < minConfidence) continue;
+    const vote = votes.get(f.value) ?? { count: 0, best: 0 };
+    votes.set(f.value, { count: vote.count + 1, best: Math.max(vote.best, f.confidence) });
+  }
+  const ranked = [...votes].sort(([, a], [, b]) => b.count - a.count || b.best - a.best);
+  if (!ranked.length) return undefined;
+  const [[value, top], runnerUp] = ranked;
+  if (!runnerUp || top.count > runnerUp[1].count) return value;
+  return top.best - runnerUp[1].best >= DECISIVE_MARGIN ? value : undefined;
 }
 
 /** A two- or three-letter brand ("OK") says less than the company's full name. */
@@ -193,7 +200,10 @@ export function combineReadings(readings: OcrLine[][]): OcrResult {
   const trusted = headline.length ? headline : parsed;
 
   const result: OcrResult = {};
-  const amountCents = pick(trusted.map((r) => r.amount));
+  const amountCents = pick(
+    trusted.map((r) => r.amount),
+    headline.length ? MIN_HEADLINE_AMOUNT_CONFIDENCE : MIN_CONFIDENCE,
+  );
   if (amountCents) result.amountCents = amountCents;
   const merchant =
     pick(parsed.map((r) => r.counterparty)) ??

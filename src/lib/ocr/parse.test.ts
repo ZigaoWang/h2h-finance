@@ -208,3 +208,16 @@ describe("confidence", () => {
   });
 });
 
+describe("voting", () => {
+  it("lets two agreeing readings outvote one misread", () => {
+    const right = lines([[95, "-25.00"], [91, "支付时间 2026年10月11日 14:23:05"]]);
+    const wrong = lines([[95, "-25.00"], [88, "支付时间 2026年10月1日 14:23:05"]]);
+    expect(combineReadings([wrong, right, right]).spentOn).toBe("2026-10-11");
+    expect(combineReadings([wrong, right]).spentOn).toBeUndefined();
+  });
+
+  it("accepts a low-confidence headline amount, which must match the money format anyway", () => {
+    expect(combineReadings([lines([[94, "全家便利店"], [65, "-25.00"]])])).toMatchObject({ amountCents: 2500, merchant: "全家便利店" });
+  });
+});
+
