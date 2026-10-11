@@ -1,51 +1,59 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getLocale } from "next-intl/server";
-import { z } from "zod";
-import { normalizeEmail, requestCode, verifyCode } from "@/lib/auth/codes";
+import { clearUnlock, chooseName, currentUnlock, registerName, signInNames, unlock } from "@/lib/auth/sign-in";
 import { createSession, destroySession } from "@/lib/auth/session";
 import { clientIp } from "@/lib/request";
 
-export type LoginState =
-  | { step: "email"; error?: "invalid_email" | "rate_limited" | "send_failed"; email?: string }
-  | { step: "code"; email: string; error?: "invalid_code"; resent?: boolean };
+type Name = { id: number; name: string; role: "member" | "admin" };
 
-const emailSchema = z.email().max(254);
+export type LoginState =
+  | { step: "password"; error?: "wrong_password" | "throttled" | "expired" }
+  | {
+      step: "name";
+      names: Name[];
+      adminUnlocked: boolean;
+      selected?: number;
+      newName?: string;
+      error?: "admin_password" | "throttled" | "not_found" | "invalid_name" | "name_taken" | "too_many_new";
+    };
 
 export async function login(state: LoginState, formData: FormData): Promise<LoginState> {
+  const ip = (await clientIp()) ?? "unknown";
+
   switch (formData.get("intent")) {
-    case "verify":
-      return checkCode(formData);
-    case "change-email":
-      return { step: "email", email: state.email };
+    case "unlock": {
+      const result = await unlock(String(formData.get("password") ?? ""), ip);
+      if (result === "throttled") return { step: "password", error: "throttled" };
+      if (!result) return { step: "password", error: "wrong_password" };
+      return { step: "name", names: signInNames(), adminUnlocked: result === "admin" };
+    }
+    case "choose": {
+      const userId = Number(formData.get("userId"));
+      const result = await chooseName(userId, String(formData.get("adminPassword") ?? ""), ip);
+      if (!result.ok) {
+        if (result.error === "expired") return { step: "password", error: "expired" };
+        const unlocked = await currentUnlock();
+        return { step: "name", names: signInNames(), adminUnlocked: unlocked === "admin", selected: userId, error: result.error };
+      }
+      await createSession(result.userId);
+      redirect("/dashboard");
+    }
+    case "register": {
+      const newName = String(formData.get("newName") ?? "");
+      const result = await registerName(newName);
+      if (!result.ok) {
+        if (result.error === "expired") return { step: "password", error: "expired" };
+        const unlocked = await currentUnlock();
+        return { step: "name", names: signInNames(), adminUnlocked: unlocked === "admin", newName, error: result.error };
+      }
+      await createSession(result.userId);
+      redirect("/dashboard");
+    }
     default:
-      return sendCode(formData, state.step === "code");
+      await clearUnlock();
+      return { step: "password" };
   }
-}
-
-async function sendCode(formData: FormData, resend: boolean): Promise<LoginState> {
-  const email = normalizeEmail(String(formData.get("email") ?? ""));
-  if (!emailSchema.safeParse(email).success) return { step: "email", error: "invalid_email", email };
-
-  try {
-    const result = await requestCode(email, await clientIp(), await getLocale());
-    if (result === "rate_limited") return { step: "email", error: "rate_limited", email };
-  } catch (error) {
-    console.error("Failed to send sign-in code", error);
-    return { step: "email", error: "send_failed", email };
-  }
-  return { step: "code", email, resent: resend };
-}
-
-async function checkCode(formData: FormData): Promise<LoginState> {
-  const email = normalizeEmail(String(formData.get("email") ?? ""));
-  const code = String(formData.get("code") ?? "").replace(/\D/g, "");
-  const userId = code.length === 6 ? verifyCode(email, code) : null;
-  if (!userId) return { step: "code", email, error: "invalid_code" };
-
-  await createSession(userId);
-  redirect("/");
 }
 
 export async function signOut() {

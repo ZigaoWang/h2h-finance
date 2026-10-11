@@ -8,7 +8,9 @@ export type ErrorCode =
   | "locked"
   | "file_missing"
   | "inactive_option"
-  | "email_taken"
+  | "name_taken"
+  | "wrong_password"
+  | "same_password"
   | "last_admin"
   | "overlapping_year"
   | "nothing_selected";

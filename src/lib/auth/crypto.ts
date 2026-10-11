@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { env } from "@/lib/env";
 
 export function randomToken(): string {
@@ -10,17 +10,22 @@ export function sha256(value: string | Buffer): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-export function randomCode(): string {
-  return randomInt(0, 1_000_000).toString().padStart(6, "0");
+/** Signs a small JSON payload so it can live in a cookie without being forged. */
+export function sign(payload: object): string {
+  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const mac = createHmac("sha256", env.AUTH_SECRET).update(body).digest("base64url");
+  return `${body}.${mac}`;
 }
 
-// Keyed so a copy of the database alone can't be used to brute-force live codes.
-export function hashCode(email: string, code: string): string {
-  return createHmac("sha256", env.AUTH_SECRET).update(`${email}:${code}`).digest("hex");
-}
-
-export function safeEqual(a: string, b: string): boolean {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-  return left.length === right.length && timingSafeEqual(left, right);
+export function unsign<T>(token: string | undefined): T | null {
+  const [body, mac] = token?.split(".") ?? [];
+  if (!body || !mac) return null;
+  const expected = createHmac("sha256", env.AUTH_SECRET).update(body).digest();
+  const given = Buffer.from(mac, "base64url");
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
+  try {
+    return JSON.parse(Buffer.from(body, "base64url").toString()) as T;
+  } catch {
+    return null;
+  }
 }

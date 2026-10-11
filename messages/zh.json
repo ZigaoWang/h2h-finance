@@ -1,33 +1,44 @@
 {
   "meta": {
-    "title": "H2H 财务",
-    "description": "包玉刚实验学校学生慈善社团心连心的预算、支出与报销记录。"
+    "title": "心连心财务",
+    "description": "包玉刚实验学校学生慈善社团心连心的预算与支出。"
   },
   "brand": {
-    "name": "H2H 财务",
+    "name": "心连心财务",
+    "org": "心连心",
+    "product": "财务",
     "full": "心连心财务"
   },
   "login": {
     "title": "登录",
-    "emailPrompt": "输入你的邮箱，我们会发送登录验证码。",
-    "email": "邮箱",
-    "sendCode": "发送验证码",
-    "checkEmail": "查收邮件",
-    "codeSent": "6 位验证码已发送至 <b>{email}</b>。",
-    "code": "验证码",
+    "passwordPrompt": "输入社团密码后即可提交报销、查看社团账目。",
+    "teamPassword": "社团密码",
+    "continue": "继续",
+    "whoAreYou": "你是谁？",
+    "pickName": "选择你的名字，报销会记在你名下。",
+    "search": "搜索名字",
+    "noMatch": "没有找到这个名字，请联系社长添加。",
+    "admin": "管理员",
+    "adminPassword": "管理员密码",
+    "adminPasswordHint": "管理员还需要输入管理员密码。",
+    "continueAs": "以 {name} 身份继续",
     "signIn": "登录",
-    "changeEmail": "换一个邮箱",
-    "resend": "重新发送",
-    "resendIn": "{seconds} 秒后可重新发送",
-    "resent": "新的验证码已发送。",
-    "inviteOnly": "仅受邀成员可以登录。如果你是社团成员但没有收到验证码，请联系社长添加你的邮箱。",
-    "viewPublic": "查看公开账目",
+    "back": "返回",
+    "membersOnly": "仅限心连心成员使用。社团密码请向社长索取。",
     "errors": {
-      "invalid_email": "请输入有效的邮箱地址。",
-      "rate_limited": "尝试次数过多，请稍后再试。",
-      "send_failed": "邮件发送失败，请稍后再试。",
-      "invalid_code": "验证码错误或已过期。"
-    }
+      "wrong_password": "密码不正确。",
+      "throttled": "错误次数过多，请 15 分钟后再试。",
+      "expired": "停留时间过长，请重新输入社团密码。",
+      "admin_password": "管理员密码不正确。",
+      "not_found": "该成员已被移除，请选择其他名字。",
+      "invalid_name": "请输入名字（至少 2 个字符）。",
+      "name_taken": "名单中已有这个名字，请在上方选择。",
+      "too_many_new": "今天新增的名字太多，请联系社长添加。"
+    },
+    "notListed": "名单里没有你？添加名字",
+    "newName": "你的名字",
+    "newNameHint": "请填写全名，方便社长识别。",
+    "addMe": "添加并继续"
   },
   "nav": {
     "label": "主导航",
@@ -35,11 +46,12 @@
     "expenses": "我的报销",
     "review": "审核",
     "reimburse": "打款",
-    "admin": "管理",
+    "admin": "设置",
     "submit": "提交报销",
     "account": "账户",
     "language": "语言",
-    "signOut": "退出登录"
+    "signOut": "退出登录",
+    "adminSection": "管理"
   },
   "status": {
     "pending": "待审核",
@@ -51,7 +63,7 @@
   "dashboard": {
     "title": "总览",
     "year": "预算年度",
-    "spent": "本年度已支出",
+    "spent": "已支出",
     "ofBudget": "预算 {budget}",
     "budgetUsed": "预算使用情况",
     "budgetUsedShare": "已使用预算的 {share}",
@@ -68,14 +80,15 @@
     "noEvent": "不属于任何活动",
     "nothingYet": "暂无支出。",
     "recent": "最近支出",
-    "recentPublicHint": "已批准的支出，按时间倒序。",
-    "owedTitle": "待报销",
+    "recentPublicHint": "已批准的支出，按时间倒序，每笔均有凭证存档。",
+    "owedTitle": "待报销给成员",
     "owedHint": "成员自行垫付、已批准但尚未报销的支出。",
     "allPaid": "所有成员均已报销。",
     "noYearTitle": "尚未设置预算年度",
     "noYearAdmin": "设置本年度预算后即可开始记录支出。",
     "noYearMember": "社长尚未设置本年度预算。",
-    "setUpYear": "设置预算年度"
+    "setUpYear": "设置预算年度",
+    "ofBudgetShare": "已使用预算 {budget} 的 {share}"
   },
   "common": {
     "save": "保存",
@@ -99,10 +112,12 @@
     "locked": "该记录已审核，无法修改。",
     "file_missing": "截图缺失或已被使用，请重新上传。",
     "inactive_option": "该类别或活动已停用。",
-    "email_taken": "该邮箱已是社团成员。",
     "last_admin": "社团至少需要一名管理员。",
     "overlapping_year": "日期与其他预算年度重叠。",
-    "nothing_selected": "请至少选择一笔支出。"
+    "nothing_selected": "请至少选择一笔支出。",
+    "name_taken": "成员名单中已有同名成员。",
+    "wrong_password": "当前密码不正确。",
+    "same_password": "社团密码和管理员密码不能相同。"
   },
   "admin": {
     "title": "管理",
@@ -134,7 +149,7 @@
     },
     "public": {
       "title": "公开页面",
-      "description": "任何人都能查看的只读账目，供捐赠者和赞助方了解善款用途。",
+      "description": "任何人都能打开的首页，显示预算、总额和分类统计。关闭后账目不公开。",
       "on": "公开页面已开启",
       "off": "公开页面已关闭",
       "whatsShown": "显示预算、总额和分类统计。不显示凭证、姓名、商家或备注。",
@@ -146,12 +161,10 @@
       "count": "{count} 名在册成员",
       "add": "添加成员",
       "addTitle": "添加成员",
-      "addHint": "成员通过发送到该邮箱的验证码登录，无需密码。",
+      "addHint": "对方输入社团密码后选择这个名字即可登录。",
       "editTitle": "编辑成员",
-      "email": "邮箱",
-      "emailFixed": "如需更换邮箱，请移除该成员后添加新邮箱。",
       "name": "姓名",
-      "nameHint": "仅对社团成员显示，不会公开。",
+      "nameHint": "登录时选择的名字，仅成员可见，不会公开。",
       "role": "角色",
       "roles": {
         "member": "成员",
@@ -167,7 +180,8 @@
       "removeHint": "对方将被登出且无法再登录。其报销记录会保留，之后也可以恢复。",
       "added": "已添加成员",
       "removed": "已移除成员",
-      "restored": "已恢复成员"
+      "restored": "已恢复成员",
+      "expenses": "{count, plural, =0 {尚无报销} other {# 笔报销}}"
     },
     "options": {
       "nameEn": "英文名称",
@@ -194,6 +208,26 @@
       "add": "添加活动",
       "editTitle": "编辑活动",
       "empty": "尚无活动"
+    },
+    "access": {
+      "title": "访问",
+      "description": "成员输入社团密码并选择自己的名字即可登录。",
+      "team": "社团密码",
+      "teamHint": "所有成员共用。",
+      "admin": "管理员密码",
+      "adminHint": "管理员登录时需要。",
+      "change": "修改",
+      "save": "保存",
+      "newPassword": "新密码",
+      "currentPassword": "当前管理员密码",
+      "teamTitle": "修改社团密码",
+      "teamWarning": "除你之外的所有人都会被登出，需要使用新密码重新登录。",
+      "teamRule": "至少 6 位。",
+      "adminTitle": "修改管理员密码",
+      "adminWarning": "其他管理员会被登出。",
+      "adminRule": "至少 8 位。",
+      "teamChanged": "社团密码已修改",
+      "adminChanged": "管理员密码已修改"
     }
   },
   "submit": {
@@ -213,7 +247,7 @@
     "merchantPlaceholder": "在哪里付的款",
     "date": "付款日期",
     "reading": "正在识别截图…",
-    "autoFilled": "已根据截图自动填写",
+    "autoFilled": "已从截图识别",
     "failed": "失败",
     "removeItem": "移除这笔付款",
     "removePhoto": "移除照片",
@@ -258,13 +292,14 @@
       "rate_limited": "上传次数过多，请稍后再试。",
       "unauthorized": "登录已失效，请重新登录。",
       "network": "上传失败，请检查网络后重试。"
-    }
+    },
+    "choose": "选择文件"
   },
   "expenses": {
     "title": "我的报销",
     "description": "你提交的所有报销及其进度。",
     "new": "提交报销",
-    "awaitingReview": "待审核",
+    "awaitingReview": "审核中",
     "awaitingPayback": "待打款",
     "paidBack": "已报销",
     "filter": "按状态筛选",
@@ -383,16 +418,6 @@
     "permanent": "打款记录一经确认无法修改。",
     "done": "已记录打款"
   },
-  "transparency": {
-    "title": "善款去向",
-    "description": "心连心的预算与支出，随报销批准实时更新。",
-    "eyebrow": "公开账目",
-    "heading": "善款去向",
-    "intro": "心连心是包玉刚实验学校的学生慈善社团，资助先天性心脏病儿童接受手术。社团的每一笔支出都附有付款凭证，并经社长审核批准。支出一经批准，本页即时更新。",
-    "memberSignIn": "成员登录",
-    "noYear": "尚未公布预算。",
-    "footer": "金额单位为人民币。每笔支出的凭证和转账记录均有存档，学校及赞助方可随时查阅。本页不公开任何个人信息。"
-  },
   "notFound": {
     "title": "页面不存在",
     "description": "页面可能已移动，或你没有访问权限。",
@@ -403,5 +428,42 @@
     "description": "数据没有丢失。请重试，如果问题持续出现，请告诉社长。",
     "reference": "错误编号：{digest}",
     "retry": "重试"
+  },
+  "table": {
+    "date": "日期",
+    "description": "用途",
+    "category": "类别",
+    "event": "活动",
+    "member": "成员",
+    "amount": "金额",
+    "status": "状态"
+  },
+  "setup": {
+    "title": "设置心连心财务",
+    "description": "只需设置一次，你将成为第一位管理员。",
+    "name": "你的名字",
+    "nameHint": "成员能认出的名字，例如：王子高。",
+    "adminPassword": "管理员密码",
+    "adminPasswordHint": "至少 8 位，仅管理员知道。",
+    "teamPassword": "社团密码",
+    "teamPasswordHint": "至少 6 位，分享给社团成员。",
+    "submit": "创建并继续",
+    "errors": {
+      "name": "请输入你的名字。",
+      "admin_password": "管理员密码至少需要 8 位。",
+      "team_password": "社团密码至少需要 6 位。",
+      "same_password": "社团密码和管理员密码不能相同。"
+    }
+  },
+  "roles": {
+    "member": "成员",
+    "admin": "管理员"
+  },
+  "home": {
+    "private": "账目暂未公开。",
+    "noYear": "尚未公布预算。",
+    "footer": "心连心 · 包玉刚实验学校",
+    "signIn": "成员登录",
+    "openDashboard": "进入总览"
   }
 }

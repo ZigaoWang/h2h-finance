@@ -11,13 +11,13 @@ import { useAction } from "@/hooks/use-action";
 import { cn } from "@/lib/cn";
 import { removeMemberAction, saveMemberAction } from "../actions";
 
-type Member = { id: number; email: string; name: string; role: "member" | "admin"; removed: boolean; expenseCount: number };
+type Member = { id: number; name: string; role: "member" | "admin"; removed: boolean; expenseCount: number };
 
 export function MemberDialogButton({ member }: { member?: Member }) {
   const t = useTranslations("admin.members");
   const tc = useTranslations("common");
   const [open, setOpen] = useState(false);
-  const initial = { email: member?.email ?? "", name: member?.name ?? "", role: member?.role ?? "member" };
+  const initial = { name: member?.name ?? "", role: member?.role ?? "member" };
   const [values, setValues] = useState(initial);
   const save = useAction(saveMemberAction, { success: member ? tc("saved") : t("added"), onSuccess: () => setOpen(false) });
 
@@ -39,25 +39,12 @@ export function MemberDialogButton({ member }: { member?: Member }) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            save.execute({ ...values, id: member ? String(member.id) : "", email: member ? "" : values.email });
+            save.execute({ ...values, id: member ? String(member.id) : "" });
           }}
           className="flex flex-col gap-4"
         >
-          <Field label={t("email")} htmlFor="member-email" hint={member ? t("emailFixed") : undefined}>
-            <Input
-              id="member-email"
-              type="email"
-              autoCapitalize="none"
-              spellCheck={false}
-              value={values.email}
-              onChange={(e) => setValues((v) => ({ ...v, email: e.target.value }))}
-              disabled={!!member}
-              required
-              autoFocus={!member}
-            />
-          </Field>
           <Field label={t("name")} htmlFor="member-name" hint={t("nameHint")}>
-            <Input id="member-name" value={values.name} onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))} required maxLength={80} />
+            <Input id="member-name" autoFocus value={values.name} onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))} required maxLength={80} />
           </Field>
           <Field label={t("role")} htmlFor="member-role" hint={values.role === "admin" ? t("adminHint") : t("memberHint")}>
             <Select id="member-role" value={values.role} onChange={(e) => setValues((v) => ({ ...v, role: e.target.value as Member["role"] }))}>
@@ -90,18 +77,18 @@ export function MemberRow({ member, isSelf }: { member: Member; isSelf: boolean 
   });
 
   return (
-    <li className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5", member.removed && "bg-subtle/50")}>
+    <li className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3", member.removed && "bg-subtle/50")}>
       <div className="min-w-0 flex-1">
         <p className={cn("flex items-center gap-2 font-medium", member.removed && "text-muted")}>
           <span className="truncate">{member.name}</span>
           {isSelf && <span className="text-xs font-normal text-muted">{t("you")}</span>}
         </p>
-        <p className="truncate text-[13px] text-muted">{member.email}</p>
+        <p className="text-[13px] text-muted">{t("expenses", { count: member.expenseCount })}</p>
       </div>
       <span
         className={cn(
           "rounded-full px-2.5 py-0.5 text-xs font-medium",
-          member.removed ? "bg-subtle text-muted" : member.role === "admin" ? "bg-ink text-white" : "bg-subtle text-ink-2",
+          member.removed ? "text-faint" : member.role === "admin" ? "bg-subtle text-ink" : "text-muted",
         )}
       >
         {member.removed ? t("removedLabel") : t(`roles.${member.role}`)}

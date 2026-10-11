@@ -3,7 +3,9 @@ import { eq } from "drizzle-orm";
 import { db, settings } from "@/lib/db";
 
 const DEFAULTS = {
-  publicPage: "off",
+  publicPage: "on",
+  teamPasswordHash: "",
+  adminPasswordHash: "",
 };
 
 type Key = keyof typeof DEFAULTS;

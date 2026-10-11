@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LogOut } from "lucide-react";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { signOut } from "@/app/login/actions";
 import { LocaleSwitch } from "@/components/locale-switch";
+import { cn } from "@/lib/cn";
 
-export function AccountMenu({ name, email }: { name: string; email: string }) {
+/** Account menu. In the sidebar it shows name and role; in the mobile top bar, just initials. */
+export function AccountMenu({ name, role, compact }: { name: string; role: string; compact?: boolean }) {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -32,27 +34,43 @@ export function AccountMenu({ name, email }: { name: string; email: string }) {
         aria-haspopup="menu"
         aria-label={t("account")}
         onClick={() => setOpen((o) => !o)}
-        className="flex size-8 items-center justify-center rounded-full bg-subtle text-[13px] font-semibold text-ink-2 ring-line-strong transition hover:ring-1"
+        className={cn(
+          "flex items-center gap-2.5 rounded-md text-left transition-colors",
+          compact ? "p-0.5" : "w-full px-2 py-1.5 hover:bg-black/[0.04]",
+        )}
       >
-        {initials(name)}
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-subtle text-xs font-semibold text-ink-2">{initials(name)}</span>
+        {!compact && (
+          <>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-medium">{name}</span>
+              <span className="block truncate text-xs text-muted">{role}</span>
+            </span>
+            <ChevronsUpDown className="size-3.5 shrink-0 text-faint" aria-hidden />
+          </>
+        )}
       </button>
       {open && (
-        <div role="menu" className="absolute top-10 right-0 z-40 w-64 animate-fade-in rounded-lg border border-line bg-surface p-1.5 shadow-pop">
-          <div className="px-2.5 pt-1.5 pb-2.5">
-            <p className="truncate text-sm font-medium">{name}</p>
-            <p className="truncate text-[13px] text-muted">{email}</p>
-          </div>
-          <div className="flex items-center justify-between border-t border-line px-2.5 py-2.5">
+        <div
+          role="menu"
+          className={cn(
+            "absolute z-40 w-60 animate-fade-in rounded-lg bg-surface p-1 shadow-pop",
+            compact ? "top-10 right-0" : "bottom-12 left-0",
+          )}
+        >
+          {compact && (
+            <div className="border-b border-line px-2.5 pt-1.5 pb-2">
+              <p className="truncate text-[13px] font-medium">{name}</p>
+              <p className="truncate text-xs text-muted">{role}</p>
+            </div>
+          )}
+          <div className="flex items-center justify-between px-2.5 py-2">
             <span className="text-[13px] text-muted">{t("language")}</span>
             <LocaleSwitch />
           </div>
-          <form action={signOut} className="border-t border-line pt-1.5">
-            <button
-              type="submit"
-              role="menuitem"
-              className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm text-ink-2 hover:bg-subtle hover:text-ink"
-            >
-              <LogOut className="size-4" aria-hidden />
+          <form action={signOut} className="border-t border-line pt-1">
+            <button type="submit" role="menuitem" className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] text-ink-2 hover:bg-subtle hover:text-ink">
+              <LogOut className="size-3.5" aria-hidden />
               {t("signOut")}
             </button>
           </form>

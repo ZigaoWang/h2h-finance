@@ -1,12 +1,13 @@
 import { Download } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Card, CardHeader, EmptyState } from "@/components/ui/card";
+import { EmptyState, Panel, Section } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/dal";
 import { formatDate, today } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { isPublicPageEnabled } from "@/lib/settings";
 import { yearSummary } from "@/lib/stats";
 import { listYears } from "@/lib/years";
+import { AccessSettings } from "./access";
 import { PublicPageToggle } from "./public-page-toggle";
 import { YearDialogButton } from "./year-dialog";
 
@@ -35,13 +36,9 @@ export default async function AdminBudgetPage() {
   const years = listYears();
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader
-          title={t("years.title")}
-          description={t("years.description")}
-          action={<YearDialogButton initial={suggestNextYear(years[0]?.endsOn)} />}
-        />
+    <div className="flex flex-col gap-10">
+      <Section title={t("years.title")} description={t("years.description")} action={<YearDialogButton initial={suggestNextYear(years[0]?.endsOn)} />}>
+        <Panel>
         {years.length === 0 ? (
           <EmptyState title={t("years.empty")} description={t("years.emptyHint")} />
         ) : (
@@ -49,7 +46,7 @@ export default async function AdminBudgetPage() {
             {years.map((year) => {
               const summary = yearSummary(year, { includePeople: false });
               return (
-                <li key={year.id} className="flex flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4">
+                <li key={year.id} className="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3.5">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{year.label}</p>
                     <p className="text-[13px] text-muted">
@@ -83,12 +80,20 @@ export default async function AdminBudgetPage() {
             })}
           </ul>
         )}
-      </Card>
+        </Panel>
+      </Section>
 
-      <Card>
-        <CardHeader title={t("public.title")} description={t("public.description")} />
-        <PublicPageToggle enabled={isPublicPageEnabled()} />
-      </Card>
+      <Section title={t("access.title")} description={t("access.description")}>
+        <Panel>
+          <AccessSettings />
+        </Panel>
+      </Section>
+
+      <Section title={t("public.title")} description={t("public.description")}>
+        <Panel>
+          <PublicPageToggle enabled={isPublicPageEnabled()} />
+        </Panel>
+      </Section>
     </div>
   );
 }

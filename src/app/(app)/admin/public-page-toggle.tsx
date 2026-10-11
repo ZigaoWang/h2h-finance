@@ -22,7 +22,7 @@ export function PublicPageToggle({ enabled }: { enabled: boolean }) {
         <Switch checked={enabled} onChange={(next) => toggle.execute(next)} disabled={toggle.pending} label={t("title")} />
       </div>
       {enabled && (
-        <Link href="/transparency" target="_blank" className="inline-flex items-center gap-1 self-start text-sm font-medium underline decoration-line-strong underline-offset-4 hover:decoration-ink">
+        <Link href="/" target="_blank" className="inline-flex items-center gap-1 self-start text-[13px] font-medium text-ink underline decoration-line-strong underline-offset-4 hover:decoration-ink">
           {t("view")}
           <ArrowUpRight className="size-3.5" aria-hidden />
         </Link>

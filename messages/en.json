@@ -1,33 +1,44 @@
 {
   "meta": {
-    "title": "H2H Finance",
-    "description": "Budget, spending and reimbursements for Heart to Heart, a student charity at YK Pao School."
+    "title": "Heart to Heart Finance",
+    "description": "Budget and spending of Heart to Heart, a student charity at YK Pao School."
   },
   "brand": {
-    "name": "H2H Finance",
+    "name": "Heart to Heart Finance",
+    "org": "Heart to Heart",
+    "product": "Finance",
     "full": "Heart to Heart Finance"
   },
   "login": {
     "title": "Sign in",
-    "emailPrompt": "Enter your email and we'll send you a sign-in code.",
-    "email": "Email",
-    "sendCode": "Send code",
-    "checkEmail": "Check your email",
-    "codeSent": "We sent a 6-digit code to <b>{email}</b>.",
-    "code": "Code",
+    "passwordPrompt": "Enter the team password to submit expenses or see the club's accounts.",
+    "teamPassword": "Team password",
+    "continue": "Continue",
+    "whoAreYou": "Who are you?",
+    "pickName": "Pick your name. Your expenses will be filed under it.",
+    "search": "Search names",
+    "noMatch": "No one by that name. Ask the club lead to add you.",
+    "admin": "Admin",
+    "adminPassword": "Admin password",
+    "adminPasswordHint": "Admins also need the admin password.",
+    "continueAs": "Continue as {name}",
     "signIn": "Sign in",
-    "changeEmail": "Use a different email",
-    "resend": "Resend code",
-    "resendIn": "Resend in {seconds}s",
-    "resent": "A new code is on its way.",
-    "inviteOnly": "Only invited members can sign in. If you're in the club and don't get a code, ask the club lead to add your email.",
-    "viewPublic": "View the public dashboard",
+    "back": "Back",
+    "membersOnly": "For Heart to Heart members. Ask the club lead for the team password.",
     "errors": {
-      "invalid_email": "Enter a valid email address.",
-      "rate_limited": "Too many attempts. Wait a while and try again.",
-      "send_failed": "We couldn't send the email. Try again in a minute.",
-      "invalid_code": "That code is wrong or has expired."
-    }
+      "wrong_password": "That password isn't right.",
+      "throttled": "Too many wrong attempts. Try again in 15 minutes.",
+      "expired": "That took a while. Enter the team password again.",
+      "admin_password": "That admin password isn't right.",
+      "not_found": "That member was removed. Pick another name.",
+      "invalid_name": "Enter your name (at least 2 characters).",
+      "name_taken": "That name is already on the list. Pick it above.",
+      "too_many_new": "Too many new names today. Ask the club lead to add you."
+    },
+    "notListed": "Not on the list? Add your name",
+    "newName": "Your name",
+    "newNameHint": "Use your full name so the club lead recognises you.",
+    "addMe": "Add me and continue"
   },
   "nav": {
     "label": "Main",
@@ -35,11 +46,12 @@
     "expenses": "My expenses",
     "review": "Review",
     "reimburse": "Pay back",
-    "admin": "Admin",
+    "admin": "Settings",
     "submit": "New expense",
     "account": "Account",
     "language": "Language",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "adminSection": "Admin"
   },
   "status": {
     "pending": "Pending review",
@@ -51,7 +63,7 @@
   "dashboard": {
     "title": "Dashboard",
     "year": "Budget year",
-    "spent": "Spent this year",
+    "spent": "Spent",
     "ofBudget": "of {budget} budget",
     "budgetUsed": "Budget used",
     "budgetUsedShare": "{share} of the budget used",
@@ -68,14 +80,15 @@
     "noEvent": "Not tied to an event",
     "nothingYet": "Nothing spent yet.",
     "recent": "Recent spending",
-    "recentPublicHint": "Approved expenses, newest first.",
-    "owedTitle": "Still to pay back",
+    "recentPublicHint": "Approved expenses, newest first. Receipts are kept for every one.",
+    "owedTitle": "Owed to members",
     "owedHint": "Approved expenses members paid for themselves.",
     "allPaid": "Everyone has been paid back.",
     "noYearTitle": "No budget year yet",
     "noYearAdmin": "Set up this year's budget to start tracking spending.",
     "noYearMember": "The club lead hasn't set up this year's budget yet.",
-    "setUpYear": "Set up budget year"
+    "setUpYear": "Set up budget year",
+    "ofBudgetShare": "{share} of {budget} budget"
   },
   "common": {
     "save": "Save",
@@ -99,10 +112,12 @@
     "locked": "This has already been reviewed and can't be changed.",
     "file_missing": "A screenshot is missing or was already used. Upload it again.",
     "inactive_option": "That category or event is no longer available.",
-    "email_taken": "Someone with that email is already a member.",
     "last_admin": "The club needs at least one admin.",
     "overlapping_year": "These dates overlap another budget year.",
-    "nothing_selected": "Select at least one expense."
+    "nothing_selected": "Select at least one expense.",
+    "name_taken": "Someone on the member list already has that name.",
+    "wrong_password": "The current password isn't right.",
+    "same_password": "The team and admin passwords must be different."
   },
   "admin": {
     "title": "Admin",
@@ -134,7 +149,7 @@
     },
     "public": {
       "title": "Public page",
-      "description": "A read-only dashboard anyone can open, for donors and sponsors.",
+      "description": "The home page anyone can open: budget, totals and breakdowns. Turn it off to keep the accounts private.",
       "on": "The public page is live",
       "off": "The public page is hidden",
       "whatsShown": "Shows the budget, totals and breakdowns. Never receipts, names, shops or private notes.",
@@ -146,12 +161,10 @@
       "count": "{count, plural, one {# active member} other {# active members}}",
       "add": "Add member",
       "addTitle": "Add a member",
-      "addHint": "They'll sign in with a code sent to this email. No password needed.",
+      "addHint": "They sign in with the team password and pick this name.",
       "editTitle": "Edit member",
-      "email": "Email",
-      "emailFixed": "To change the email, remove this member and add the new address.",
       "name": "Name",
-      "nameHint": "Shown to other members on the dashboard. Never shown publicly.",
+      "nameHint": "The name they'll pick when signing in. Shown to members, never publicly.",
       "role": "Role",
       "roles": {
         "member": "Member",
@@ -167,7 +180,8 @@
       "removeHint": "They'll be signed out and can't sign in again. Their expenses stay on record, and you can restore them later.",
       "added": "Member added",
       "removed": "Member removed",
-      "restored": "Member restored"
+      "restored": "Member restored",
+      "expenses": "{count, plural, =0 {No expenses yet} one {# expense} other {# expenses}}"
     },
     "options": {
       "nameEn": "Name in English",
@@ -194,6 +208,26 @@
       "add": "Add event",
       "editTitle": "Edit event",
       "empty": "No events yet"
+    },
+    "access": {
+      "title": "Access",
+      "description": "Members sign in with the team password and pick their name.",
+      "team": "Team password",
+      "teamHint": "Shared with every member.",
+      "admin": "Admin password",
+      "adminHint": "Needed when an admin signs in.",
+      "change": "Change",
+      "save": "Save",
+      "newPassword": "New password",
+      "currentPassword": "Current admin password",
+      "teamTitle": "Change the team password",
+      "teamWarning": "Everyone except you will be signed out and need the new password.",
+      "teamRule": "At least 6 characters.",
+      "adminTitle": "Change the admin password",
+      "adminWarning": "Other admins will be signed out.",
+      "adminRule": "At least 8 characters.",
+      "teamChanged": "Team password changed",
+      "adminChanged": "Admin password changed"
     }
   },
   "submit": {
@@ -213,7 +247,7 @@
     "merchantPlaceholder": "Where you paid",
     "date": "Date paid",
     "reading": "Reading screenshot…",
-    "autoFilled": "Filled in from the screenshot",
+    "autoFilled": "Read from screenshot",
     "failed": "Failed",
     "removeItem": "Remove this payment",
     "removePhoto": "Remove photo",
@@ -258,14 +292,15 @@
       "rate_limited": "Too many uploads. Wait a while and try again.",
       "unauthorized": "You've been signed out. Sign in again.",
       "network": "Upload failed. Check your connection and try again."
-    }
+    },
+    "choose": "Choose files"
   },
   "expenses": {
     "title": "My expenses",
     "description": "Everything you've submitted and where it's at.",
     "new": "New expense",
-    "awaitingReview": "Waiting for review",
-    "awaitingPayback": "Awaiting payback",
+    "awaitingReview": "In review",
+    "awaitingPayback": "To be paid back",
     "paidBack": "Paid back",
     "filter": "Filter by status",
     "all": "All",
@@ -383,16 +418,6 @@
     "permanent": "Reimbursements are permanent and can't be edited afterwards.",
     "done": "Reimbursement recorded"
   },
-  "transparency": {
-    "title": "Where the money goes",
-    "description": "Heart to Heart's budget and spending, updated as expenses are approved.",
-    "eyebrow": "Open finances",
-    "heading": "Where the money goes",
-    "intro": "Heart to Heart is a student charity at YK Pao School that funds heart surgery for children. Every club expense is recorded with proof of payment and approved by the club lead. This page updates as soon as an expense is approved.",
-    "memberSignIn": "Member sign in",
-    "noYear": "No budget has been published yet.",
-    "footer": "Amounts are in Chinese yuan. Receipts and transfer records are kept for every expense and are available to the school and our sponsors on request. Personal details are never published."
-  },
   "notFound": {
     "title": "Page not found",
     "description": "It may have moved, or you may not have access to it.",
@@ -403,5 +428,42 @@
     "description": "Nothing was lost. Try again, and if it keeps happening, tell the club lead.",
     "reference": "Reference: {digest}",
     "retry": "Try again"
+  },
+  "table": {
+    "date": "Date",
+    "description": "Description",
+    "category": "Category",
+    "event": "Event",
+    "member": "Member",
+    "amount": "Amount",
+    "status": "Status"
+  },
+  "setup": {
+    "title": "Set up Heart to Heart Finance",
+    "description": "This runs once. You'll be the first admin.",
+    "name": "Your name",
+    "nameHint": "As members will recognise it, e.g. Zigao Wang.",
+    "adminPassword": "Admin password",
+    "adminPasswordHint": "At least 8 characters. Only admins get this one.",
+    "teamPassword": "Team password",
+    "teamPasswordHint": "At least 6 characters. Share this with club members.",
+    "submit": "Create and continue",
+    "errors": {
+      "name": "Enter your name.",
+      "admin_password": "The admin password needs at least 8 characters.",
+      "team_password": "The team password needs at least 6 characters.",
+      "same_password": "Use different team and admin passwords."
+    }
+  },
+  "roles": {
+    "member": "Member",
+    "admin": "Admin"
+  },
+  "home": {
+    "private": "The accounts aren't public at the moment.",
+    "noYear": "No budget has been published yet.",
+    "footer": "Heart to Heart · YK Pao School",
+    "signIn": "Member sign in",
+    "openDashboard": "Open dashboard"
   }
 }

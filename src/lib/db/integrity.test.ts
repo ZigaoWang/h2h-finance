@@ -15,7 +15,7 @@ beforeEach(() => {
   sqlite = new Database(":memory:");
   sqlite.pragma("foreign_keys = ON");
   migrate(drizzle(sqlite), { migrationsFolder: path.join(import.meta.dirname, "../../../drizzle") });
-  run("insert into users (id, email, name, role) values (1, 'a@x.com', 'Admin', 'admin'), (2, 'm@x.com', 'Member', 'member')");
+  run("insert into users (id, name, role) values (1, 'Admin', 'admin'), (2, 'Member', 'member')");
   run("insert into budget_years (id, label, starts_on, ends_on, budget_cents) values (1, '2026–27', '2026-09-01', '2027-08-31', 100000)");
   run("insert into categories (id, name_en, name_zh) values (1, 'Supplies', '物资')");
   run(`insert into expenses (id, user_id, year_id, category_id, amount_cents, merchant, spent_on, description)

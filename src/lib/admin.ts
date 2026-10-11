@@ -2,14 +2,14 @@ import "server-only";
 import { and, count, eq, isNull, max, min, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
-import { normalizeEmail } from "@/lib/auth/codes";
 import type { SessionUser } from "@/lib/auth/dal";
-import { revokeSessions } from "@/lib/auth/session";
-import { budgetYears, categories, db, events, expenses, users, ROLES } from "@/lib/db";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { revokeAllSessionsExcept, revokeSessions } from "@/lib/auth/session";
+import { budgetYears, categories, db, events, expenses, sessions, users, ROLES } from "@/lib/db";
 import { isIsoDate } from "@/lib/dates";
 import { AppError } from "@/lib/errors";
 import { parseMoney } from "@/lib/money";
-import { setSetting } from "@/lib/settings";
+import { getSetting, setSetting } from "@/lib/settings";
 
 function parse<T extends z.ZodType>(schema: T, input: unknown): z.output<T> {
   const result = schema.safeParse(input);
@@ -145,10 +145,18 @@ export function setEventArchived(admin: SessionUser, eventId: number, archived: 
 
 const memberSchema = z.object({
   id: optionalId,
-  email: z.email().max(254).transform(normalizeEmail).optional(),
   name,
   role: z.enum(ROLES),
 });
+
+function nameTaken(candidate: string, exceptId?: number) {
+  const match = db
+    .select({ id: users.id })
+    .from(users)
+    .where(sql`lower(${users.name}) = lower(${candidate})`)
+    .get();
+  return !!match && match.id !== exceptId;
+}
 
 function activeAdminCount() {
   return (
@@ -169,6 +177,7 @@ export function saveMember(admin: SessionUser, input: unknown) {
     if (member.role === "admin" && data.role !== "admin" && !member.removedAt && activeAdminCount() <= 1) {
       throw new AppError("last_admin");
     }
+    if (nameTaken(data.name, member.id)) throw new AppError("name_taken");
     db.transaction((tx) => {
       tx.update(users).set({ name: data.name, role: data.role }).where(eq(users.id, member.id)).run();
       audit(tx, { actorId: admin.id, action: "member.updated", entity: "member", entityId: member.id, data: { name: data.name, role: data.role } });
@@ -176,15 +185,10 @@ export function saveMember(admin: SessionUser, input: unknown) {
     return;
   }
 
-  if (!data.email) throw new AppError("invalid", "email");
-  if (db.select({ id: users.id }).from(users).where(eq(users.email, data.email)).get()) throw new AppError("email_taken");
+  if (nameTaken(data.name)) throw new AppError("name_taken");
   db.transaction((tx) => {
-    const { id: newId } = tx
-      .insert(users)
-      .values({ email: data.email!, name: data.name, role: data.role })
-      .returning({ id: users.id })
-      .get();
-    audit(tx, { actorId: admin.id, action: "member.added", entity: "member", entityId: newId, data: { email: data.email, role: data.role } });
+    const { id: newId } = tx.insert(users).values({ name: data.name, role: data.role }).returning({ id: users.id }).get();
+    audit(tx, { actorId: admin.id, action: "member.added", entity: "member", entityId: newId, data: { name: data.name, role: data.role } });
   });
 }
 
@@ -205,6 +209,31 @@ export function setMemberRemoved(admin: SessionUser, memberId: number, removed: 
   if (removed) revokeSessions(memberId);
 }
 
+// Access -----------------------------------------------------------------------
+
+const teamPasswordSchema = z.string().min(6).max(200);
+const adminPasswordSchema = z.string().min(8).max(200);
+
+/** A new team password signs everyone else out, so a leaked one stops working at once. */
+export async function changeTeamPassword(admin: SessionUser, password: string) {
+  const value = parse(teamPasswordSchema, password);
+  if (await verifyPassword(value, getSetting("adminPasswordHash"))) throw new AppError("same_password");
+  setSetting("teamPasswordHash", await hashPassword(value));
+  revokeAllSessionsExcept(admin.id);
+  audit(db, { actorId: admin.id, action: "access.team_password_changed", entity: "settings", entityId: "teamPassword" });
+}
+
+/** Changing the admin password needs the current one, and signs out other admins. */
+export async function changeAdminPassword(admin: SessionUser, current: string, next: string) {
+  if (!(await verifyPassword(current, getSetting("adminPasswordHash")))) throw new AppError("wrong_password");
+  const value = parse(adminPasswordSchema, next);
+  if (await verifyPassword(value, getSetting("teamPasswordHash"))) throw new AppError("same_password");
+  setSetting("adminPasswordHash", await hashPassword(value));
+  const otherAdmins = db.select({ id: users.id }).from(users).where(and(eq(users.role, "admin"), ne(users.id, admin.id))).all();
+  for (const { id } of otherAdmins) db.delete(sessions).where(eq(sessions.userId, id)).run();
+  audit(db, { actorId: admin.id, action: "access.admin_password_changed", entity: "settings", entityId: "adminPassword" });
+}
+
 // Settings -------------------------------------------------------------------
 
 export function setPublicPage(admin: SessionUser, enabled: boolean) {
@@ -220,7 +249,6 @@ export function listMembers() {
   return db
     .select({
       id: users.id,
-      email: users.email,
       name: users.name,
       role: users.role,
       removedAt: users.removedAt,

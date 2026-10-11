@@ -1,6 +1,8 @@
 "use server";
 
 import {
+  changeAdminPassword,
+  changeTeamPassword,
   saveCategory,
   saveEvent,
   saveMember,
@@ -51,4 +53,14 @@ export async function removeMemberAction(id: number, removed: boolean) {
 export async function setPublicPageAction(enabled: boolean) {
   const admin = await requireAdmin();
   return mutate(() => setPublicPage(admin, enabled));
+}
+
+export async function changeTeamPasswordAction(password: string) {
+  const admin = await requireAdmin();
+  return mutate(() => changeTeamPassword(admin, password));
+}
+
+export async function changeAdminPasswordAction(current: string, next: string) {
+  const admin = await requireAdmin();
+  return mutate(() => changeAdminPassword(admin, current, next));
 }

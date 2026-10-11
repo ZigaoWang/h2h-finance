@@ -13,14 +13,14 @@ export const users = sqliteTable(
   "users",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    email: text("email").notNull(),
+    // Members pick their name when signing in, so names are unique regardless of case.
     name: text("name").notNull(),
     role: text("role", { enum: ROLES }).notNull().default("member"),
     // Removed members keep their history but can no longer sign in.
     removedAt: integer("removed_at", { mode: "timestamp_ms" }),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("users_email_unique").on(t.email)],
+  (t) => [uniqueIndex("users_name_unique").on(sql`lower(${t.name})`)],
 );
 
 export const sessions = sqliteTable(
@@ -37,19 +37,16 @@ export const sessions = sqliteTable(
   (t) => [index("sessions_user_idx").on(t.userId)],
 );
 
-export const loginCodes = sqliteTable(
-  "login_codes",
+// Every password attempt, kept briefly, so repeated guessing from one address can be slowed down.
+export const loginAttempts = sqliteTable(
+  "login_attempts",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    email: text("email").notNull(),
-    codeHash: text("code_hash").notNull(),
-    ip: text("ip"),
-    attempts: integer("attempts").notNull().default(0),
-    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
-    usedAt: integer("used_at", { mode: "timestamp_ms" }),
+    ip: text("ip").notNull(),
+    success: integer("success", { mode: "boolean" }).notNull(),
     createdAt: createdAt(),
   },
-  (t) => [index("login_codes_email_idx").on(t.email, t.createdAt), index("login_codes_ip_idx").on(t.ip, t.createdAt)],
+  (t) => [index("login_attempts_ip_idx").on(t.ip, t.createdAt)],
 );
 
 export const budgetYears = sqliteTable(

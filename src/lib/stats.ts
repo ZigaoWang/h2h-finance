@@ -147,7 +147,7 @@ export function recentTransactions(year: BudgetYear, { publicView, limit }: { pu
 /** Approved but not yet paid back, per member, across all years. */
 export function owedByMember() {
   return db
-    .select({ userId: users.id, name: users.name, email: users.email, cents: sum(expenses.amountCents).mapWith(Number), count: tally })
+    .select({ userId: users.id, name: users.name, cents: sum(expenses.amountCents).mapWith(Number), count: tally })
     .from(expenses)
     .innerJoin(users, eq(users.id, expenses.userId))
     .where(eq(expenses.status, "approved"))

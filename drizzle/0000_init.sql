@@ -94,19 +94,14 @@ CREATE TABLE `files` (
 CREATE INDEX `files_sha_idx` ON `files` (`sha256`);--> statement-breakpoint
 CREATE INDEX `files_expense_idx` ON `files` (`expense_id`);--> statement-breakpoint
 CREATE INDEX `files_reimbursement_idx` ON `files` (`reimbursement_id`);--> statement-breakpoint
-CREATE TABLE `login_codes` (
+CREATE TABLE `login_attempts` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`email` text NOT NULL,
-	`code_hash` text NOT NULL,
-	`ip` text,
-	`attempts` integer DEFAULT 0 NOT NULL,
-	`expires_at` integer NOT NULL,
-	`used_at` integer,
+	`ip` text NOT NULL,
+	`success` integer NOT NULL,
 	`created_at` integer DEFAULT (unixepoch('subsec') * 1000) NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `login_codes_email_idx` ON `login_codes` (`email`,`created_at`);--> statement-breakpoint
-CREATE INDEX `login_codes_ip_idx` ON `login_codes` (`ip`,`created_at`);--> statement-breakpoint
+CREATE INDEX `login_attempts_ip_idx` ON `login_attempts` (`ip`,`created_at`);--> statement-breakpoint
 CREATE TABLE `reimbursements` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
@@ -137,11 +132,10 @@ CREATE TABLE `settings` (
 --> statement-breakpoint
 CREATE TABLE `users` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`email` text NOT NULL,
 	`name` text NOT NULL,
 	`role` text DEFAULT 'member' NOT NULL,
 	`removed_at` integer,
 	`created_at` integer DEFAULT (unixepoch('subsec') * 1000) NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);
+CREATE UNIQUE INDEX `users_name_unique` ON `users` (lower("name"));

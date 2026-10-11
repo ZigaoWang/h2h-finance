@@ -26,5 +26,5 @@ export function listReimbursements(limit = 50) {
 }
 
 export function getMember(id: number) {
-  return db.select({ id: users.id, name: users.name, email: users.email }).from(users).where(eq(users.id, id)).get();
+  return db.select({ id: users.id, name: users.name }).from(users).where(eq(users.id, id)).get();
 }

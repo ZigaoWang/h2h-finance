@@ -1,6 +1,6 @@
 {
-  "id": "3fd881ba-4479-4d85-aeeb-056bccc7173e",
-  "prevId": "70b1f8c6-c92b-4f9a-acf7-7e8b62abfad1",
+  "id": "6b951dad-da98-47af-867a-fa7f72059326",
+  "prevId": "6b02b9b8-79d8-4fdc-b9ab-34c24e9951d0",
   "version": "6",
   "dialect": "sqlite",
   "tables": {
@@ -686,8 +686,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "login_codes": {
-      "name": "login_codes",
+    "login_attempts": {
+      "name": "login_attempts",
       "columns": {
         "id": {
           "name": "id",
@@ -696,47 +696,18 @@
           "notNull": true,
           "autoincrement": true
         },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "code_hash": {
-          "name": "code_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "ip": {
           "name": "ip",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "attempts": {
-          "name": "attempts",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "integer",
-          "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "used_at": {
-          "name": "used_at",
+        "success": {
+          "name": "success",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "created_at": {
@@ -749,16 +720,8 @@
         }
       },
       "indexes": {
-        "login_codes_email_idx": {
-          "name": "login_codes_email_idx",
-          "columns": [
-            "email",
-            "created_at"
-          ],
-          "isUnique": false
-        },
-        "login_codes_ip_idx": {
-          "name": "login_codes_ip_idx",
+        "login_attempts_ip_idx": {
+          "name": "login_attempts_ip_idx",
           "columns": [
             "ip",
             "created_at"
@@ -966,13 +929,6 @@
           "notNull": true,
           "autoincrement": true
         },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "name": {
           "name": "name",
           "type": "text",
@@ -1005,10 +961,10 @@
         }
       },
       "indexes": {
-        "users_email_unique": {
-          "name": "users_email_unique",
+        "users_name_unique": {
+          "name": "users_name_unique",
           "columns": [
-            "email"
+            "lower(\"name\")"
           ],
           "isUnique": true
         }
@@ -1027,6 +983,14 @@
     "tables": {}
   },
   "internal": {
-    "indexes": {}
+    "indexes": {
+      "users_name_unique": {
+        "columns": {
+          "lower(\"name\")": {
+            "isExpression": true
+          }
+        }
+      }
+    }
   }
 }

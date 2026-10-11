@@ -4,7 +4,6 @@ import path from "node:path";
 import Database from "better-sqlite3";
 import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { eq } from "drizzle-orm";
 import { env } from "@/lib/env";
 import * as schema from "./schema";
 
@@ -33,23 +32,12 @@ function open(): DB {
   return db;
 }
 
-// First run: seed categories, and make sure the configured admin can always sign in.
+// First run: seed the usual categories. The admin account is created on the setup page.
 function bootstrap(db: DB) {
   if (!db.select({ id: schema.categories.id }).from(schema.categories).limit(1).get()) {
     db.insert(schema.categories)
       .values(DEFAULT_CATEGORIES.map(([nameEn, nameZh]) => ({ nameEn, nameZh })))
       .run();
-  }
-
-  const email = env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase();
-  if (!email) return;
-  const existing = db.select().from(schema.users).where(eq(schema.users.email, email)).get();
-  if (!existing) {
-    db.insert(schema.users)
-      .values({ email, name: env.BOOTSTRAP_ADMIN_NAME ?? email.split("@")[0], role: "admin" })
-      .run();
-  } else if (existing.role !== "admin" || existing.removedAt) {
-    db.update(schema.users).set({ role: "admin", removedAt: null }).where(eq(schema.users.id, existing.id)).run();
   }
 }
 
