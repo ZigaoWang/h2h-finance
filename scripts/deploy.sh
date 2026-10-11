@@ -49,6 +49,8 @@ previous="$(readlink -f "$CURRENT" 2>/dev/null || true)"
 
 say "Building $commit"
 mkdir -p "$RELEASES"
+# A build that fails partway leaves nothing behind.
+trap 'rm -rf "$release"' ERR
 git clone --quiet --depth 1 --branch "$BRANCH" "$REPO" "$release"
 cd "$release"
 # The build tools are dev dependencies, which NODE_ENV=production from .env would otherwise skip.
@@ -56,6 +58,7 @@ npm ci --include=dev --no-audit --no-fund --loglevel=error
 npm run build >/dev/null
 cp -r .next/static .next/standalone/.next/
 cp -r public .next/standalone/
+trap - ERR
 
 healthy() {
   for _ in $(seq 1 30); do
