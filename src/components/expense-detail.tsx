@@ -37,7 +37,7 @@ export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: 
             <p className="num text-[28px] leading-tight font-semibold tracking-tight">
               <span className={expense.status === "voided" ? "text-faint line-through" : undefined}>{formatMoney(expense.amountCents)}</span>
             </p>
-            <StatusBadge status={expense.status} className="mt-1.5" />
+            {expense.status === "voided" && <StatusBadge status="voided" className="mt-1.5" />}
           </div>
           <h2 className="mt-2 text-[15px] font-medium">{expense.description}</h2>
 
@@ -92,10 +92,10 @@ export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: 
               <ButtonLink href={`/expenses/${expense.id}/edit`} variant="secondary" size="sm">
                 {t("edit")}
               </ButtonLink>
-              {isAdmin && <DeleteAction id={expense.id} />}
+              <DeleteAction id={expense.id} />
             </div>
           )}
-          {isAdmin && expense.status === "voided" && (
+          {(isAdmin || isOwner) && expense.status === "voided" && (
             <div className="mt-4 border-t border-line pt-3">
               <RestoreAction id={expense.id} />
             </div>

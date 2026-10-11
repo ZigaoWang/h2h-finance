@@ -29,15 +29,15 @@ export function DeleteAction({ id }: { id: number }) {
           }}
           className="flex flex-col gap-4"
         >
-          <Field label={t("reason")} htmlFor={`delete-${id}`}>
-            <Textarea id={`delete-${id}`} value={reason} onChange={(e) => setReason(e.target.value)} required maxLength={500} rows={3} autoFocus />
+          <Field label={t("reason")} htmlFor={`delete-${id}`} optional={t("optional")}>
+            <Textarea id={`delete-${id}`} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} rows={2} autoFocus />
           </Field>
           {remove.error && <Alert>{remove.error}</Alert>}
           <DialogActions>
             <Button variant="secondary" onClick={() => setOpen(false)}>
               {t("cancel")}
             </Button>
-            <Button type="submit" variant="danger" pending={remove.pending} disabled={!reason.trim()}>
+            <Button type="submit" variant="danger" pending={remove.pending}>
               {t("delete")}
             </Button>
           </DialogActions>

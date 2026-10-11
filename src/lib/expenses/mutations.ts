@@ -194,30 +194,28 @@ export function updateExpense(user: SessionUser, id: number, input: UpdateInput)
   });
 }
 
-const reasonSchema = text(500);
-
 /**
  * Deletes an expense in the open: it stays on record, marked deleted with who and why, and drops
  * out of every total.
  */
-export function deleteExpense(admin: SessionUser, id: number, reason: string) {
-  const why = parse(reasonSchema, reason);
+export function deleteExpense(user: SessionUser, id: number, reason: string) {
+  const why = parse(optionalText(500), reason) ?? null;
   const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
-  if (!expense) throw new AppError("not_found");
+  if (!expense || (user.role !== "admin" && expense.userId !== user.id)) throw new AppError("not_found");
   if (expense.status === "voided") throw new AppError("locked");
   db.transaction((tx) => {
     tx.update(expenses)
-      .set({ status: "voided", voidedBy: admin.id, voidedAt: new Date(), voidReason: why })
+      .set({ status: "voided", voidedBy: user.id, voidedAt: new Date(), voidReason: why })
       .where(eq(expenses.id, id))
       .run();
-    audit(tx, { actorId: admin.id, action: "expense.voided", entity: "expense", entityId: id, data: { reason: why, from: expense.status } });
+    audit(tx, { actorId: user.id, action: "expense.voided", entity: "expense", entityId: id, data: { reason: why ?? undefined, from: expense.status } });
   });
 }
 
 /** Brings a deleted expense back into the accounts. */
-export function restoreExpense(admin: SessionUser, id: number) {
+export function restoreExpense(user: SessionUser, id: number) {
   const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
-  if (!expense) throw new AppError("not_found");
+  if (!expense || (user.role !== "admin" && expense.userId !== user.id)) throw new AppError("not_found");
   if (expense.status !== "voided") throw new AppError("locked");
   assertDate(expense.spentOn);
   db.transaction((tx) => {
@@ -228,10 +226,10 @@ export function restoreExpense(admin: SessionUser, id: number) {
         voidedAt: null,
         voidReason: null,
         updatedAt: new Date(),
-        updatedBy: admin.id,
+        updatedBy: user.id,
       })
       .where(eq(expenses.id, id))
       .run();
-    audit(tx, { actorId: admin.id, action: "expense.restored", entity: "expense", entityId: id });
+    audit(tx, { actorId: user.id, action: "expense.restored", entity: "expense", entityId: id });
   });
 }

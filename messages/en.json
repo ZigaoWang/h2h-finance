@@ -368,10 +368,11 @@
     "reason": "Reason",
     "delete": "Delete",
     "deleteTitle": "Delete this expense",
-    "deleteHint": "It stays on record as deleted, with your name and reason, and no longer counts towards spending. You can restore it later.",
+    "deleteHint": "It stays on record as deleted, with your name, and no longer counts towards spending. You can restore it later.",
     "deleted": "Expense deleted",
-    "restore": "Restore for review",
-    "restored": "Expense restored"
+    "restore": "Restore",
+    "restored": "Expense restored",
+    "optional": "Optional"
   },
   "notFound": {
     "title": "Page not found",

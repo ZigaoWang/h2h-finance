@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAdmin, requireUser } from "@/lib/auth/dal";
+import { requireUser } from "@/lib/auth/dal";
 import {
   deleteExpense,
   restoreExpense,
@@ -22,11 +22,11 @@ export async function updateExpenseAction(id: number, input: UpdateInput) {
 }
 
 export async function deleteExpenseAction(id: number, reason: string) {
-  const admin = await requireAdmin();
-  return mutate(() => deleteExpense(admin, id, reason));
+  const user = await requireUser();
+  return mutate(() => deleteExpense(user, id, reason));
 }
 
 export async function restoreExpenseAction(id: number) {
-  const admin = await requireAdmin();
-  return mutate(() => restoreExpense(admin, id));
+  const user = await requireUser();
+  return mutate(() => restoreExpense(user, id));
 }
