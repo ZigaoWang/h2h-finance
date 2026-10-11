@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeLine, parseReceiptText } from "./parse";
+import { combineReadings, normalizeLine, parseReceiptText } from "./parse";
 
 describe("normalizeLine", () => {
   it("joins Chinese characters that OCR split apart", () => {
@@ -72,11 +72,85 @@ Merchant Name Starbucks Coffee (Shanghai) Co., Ltd.
     expect(parseReceiptText(text)).toEqual({ amountCents: 4200, merchant: "Starbucks", spentOn: "2026-10-03" });
   });
 
+  // Real OCR output from a club member's screenshots, so the parser is checked against what Tesseract actually produces.
+  it("reads a real WeChat Pay bill", () => {
+    const text = `19:38 ¢                             EY co
+
+闪送
+
+-31.20
+
+当前状态 支付成功
+
+支付时间     2026年9月24日 21:47:10
+
+商品        闪送-DH2026092469712878
+
+商户全称 北京同城必应科技有限公司
+
+收单机构 。。 财付通支付科技有限公司
+
+支付方式 零钱
+
+交易单号       4500000429202609247505106987
+商户单号       7508884723616418152
+
+商家小程序                        LAE >
+账单服务`;
+    expect(parseReceiptText(text)).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24" });
+  });
+
+  it("reads a real Alipay balance detail", () => {
+    const text = `19:38 7                             2 TE
+
+<                        余额明细详情
+
+日
+
+OPENROUTER, INC
+
+-142.13
+
+关联账单         查看账单详情
+
+支付时间            2026-10-10 10:53:06
+
+付款方式         可用余额
+
+交易类型         支出
+
+商品说明         OPENROUTER, INC
+
+对方账户          OpenRouter, Inc
+
+余额                   Y3.81`;
+    expect(parseReceiptText(text)).toEqual({ amountCents: 14213, merchant: "OPENROUTER, INC", spentOn: "2026-10-10" });
+  });
+
   it("leaves fields empty rather than guessing", () => {
     expect(parseReceiptText("a photo of a cat")).toEqual({});
   });
 
   it("ignores impossible dates", () => {
     expect(parseReceiptText("支付时间 2026-02-30 10:00")).toEqual({});
+  });
+});
+
+describe("combineReadings", () => {
+  const headline = "闪送\n-31.20\n支付时间 2026年9月24日 21:47:10\n商户全称 北京同城必应科技有限公司";
+  const detailOnly = "支付时间 2026年9月24日 21:47:10\n商户全称 北京同城必应科技有限公司";
+
+  it("takes the amount and shop from the reading that found the headline", () => {
+    expect(combineReadings([headline, detailOnly])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24" });
+    expect(combineReadings([detailOnly, headline])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24" });
+  });
+
+  it("falls back to labelled fields when no reading found a headline", () => {
+    expect(combineReadings([detailOnly, detailOnly])).toEqual({ merchant: "北京同城必应科技有限公司", spentOn: "2026-09-24" });
+  });
+
+  it("leaves a field empty when readings disagree", () => {
+    const misread = headline.replace("9月24日", "9月21日");
+    expect(combineReadings([headline, misread])).toEqual({ amountCents: 3120, merchant: "闪送" });
   });
 });

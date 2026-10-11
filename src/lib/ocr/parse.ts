@@ -96,14 +96,45 @@ function findMerchant(lines: string[], headlineLine?: number): string | undefine
   return undefined;
 }
 
-export function parseReceiptText(text: string): OcrResult {
+type Reading = OcrResult & { headline: boolean };
+
+function analyse(text: string): Reading {
   const lines = text.split(/\r?\n/).map(normalizeLine).filter(Boolean);
   const amount = findAmount(lines);
-  const result: OcrResult = {};
-  if (amount) result.amountCents = amount.cents;
+  const reading: Reading = { headline: amount?.headlineLine !== undefined };
+  if (amount) reading.amountCents = amount.cents;
   const merchant = findMerchant(lines, amount?.headlineLine);
-  if (merchant) result.merchant = merchant;
+  if (merchant) reading.merchant = merchant;
   const spentOn = findDate(lines);
+  if (spentOn) reading.spentOn = spentOn;
+  return reading;
+}
+
+export function parseReceiptText(text: string): OcrResult {
+  return combineReadings([text]);
+}
+
+/** One value from several readings: the first one found, unless two readings disagree. */
+function agreed<T>(values: (T | undefined)[]): T | undefined {
+  const found = values.filter((v): v is T => v !== undefined);
+  return found.every((v) => v === found[0]) ? found[0] : undefined;
+}
+
+/**
+ * Combines readings of the same image at different scales. A reading that found the big
+ * headline amount is trusted for the amount and the shop name printed above it; dates must
+ * agree wherever they were read. Any conflict leaves the field for the member to fill in.
+ */
+export function combineReadings(texts: string[]): OcrResult {
+  const readings = texts.map(analyse);
+  const headline = readings.filter((r) => r.headline);
+  const trusted = headline.length ? headline : readings;
+  const result: OcrResult = {};
+  const amountCents = agreed(trusted.map((r) => r.amountCents));
+  if (amountCents) result.amountCents = amountCents;
+  const merchant = agreed(trusted.map((r) => r.merchant)) ?? (headline.length ? undefined : agreed(readings.map((r) => r.merchant)));
+  if (merchant) result.merchant = merchant;
+  const spentOn = agreed(readings.map((r) => r.spentOn));
   if (spentOn) result.spentOn = spentOn;
   return result;
 }

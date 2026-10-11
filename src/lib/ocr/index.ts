@@ -5,11 +5,11 @@ import path from "node:path";
 import sharp from "sharp";
 import { createWorker, OEM, PSM, type Worker } from "tesseract.js";
 import type { OcrResult } from "@/lib/db/schema";
-import { parseReceiptText } from "./parse";
+import { combineReadings } from "./parse";
 
 // English first: tesseract.js fails to load the second language when chi_sim leads.
 const LANGUAGES = ["eng", "chi_sim"];
-const TIMEOUT = 25_000;
+const TIMEOUT = 30_000;
 
 // Language data ships with the app (see outputFileTracingIncludes), so OCR never needs the network.
 // Tesseract reads every language from one directory, so the bundled files are staged together.
@@ -40,18 +40,19 @@ function getWorker() {
   return worker;
 }
 
-async function recognize(image: Buffer): Promise<string> {
-  // Screenshots are already sharp; greyscale and a sensible width make recognition faster and steadier.
-  const prepared = await sharp(image)
-    .rotate()
-    .resize({ width: 1200, withoutEnlargement: false })
-    .greyscale()
-    .normalise()
-    .png()
-    .toBuffer();
+async function recognize(image: Buffer, width: number): Promise<string> {
+  const prepared = await sharp(image).rotate().resize({ width }).greyscale().normalise().png().toBuffer();
   const w = await getWorker();
   const { data } = await w.recognize(prepared);
   return data.text;
+}
+
+// No single scale reads every screenshot: the headline amount is huge and thin and Tesseract
+// can miss it at full size, while small print needs the detail. Read at two widths and combine.
+async function read(image: Buffer): Promise<OcrResult> {
+  const small = await recognize(image, 700);
+  const large = await recognize(image, 1200);
+  return combineReadings([small, large]);
 }
 
 /** Best-effort: reads amount, merchant and date from a payment screenshot. Never throws. */
@@ -59,7 +60,7 @@ export function readReceipt(image: Buffer): Promise<OcrResult> {
   // One recognition at a time keeps memory flat on a small server.
   const job = queue.then(() =>
     Promise.race([
-      recognize(image).then(parseReceiptText),
+      read(image),
       new Promise<OcrResult>((resolve) => setTimeout(() => resolve({}), TIMEOUT)),
     ]),
   );
