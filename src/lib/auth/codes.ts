@@ -1,6 +1,6 @@
 import "server-only";
-import { and, count, desc, eq, gt, isNull } from "drizzle-orm";
-import { db, loginCodes, users } from "@/lib/db";
+import { and, count, desc, eq, gt, isNull, lt } from "drizzle-orm";
+import { db, loginCodes, sessions, users } from "@/lib/db";
 import { sendMail, signInCodeMail } from "@/lib/email";
 import { hashCode, randomCode, safeEqual } from "./crypto";
 
@@ -23,6 +23,7 @@ export type RequestCodeResult = "sent" | "rate_limited";
  */
 export async function requestCode(email: string, ip: string | null, locale: "en" | "zh"): Promise<RequestCodeResult> {
   const hourAgo = new Date(Date.now() - 60 * MINUTE);
+  pruneExpired();
 
   if (ip) {
     const byIp = db
@@ -91,4 +92,11 @@ export function verifyCode(email: string, code: string): number | null {
     .where(and(eq(users.email, email), isNull(users.removedAt)))
     .get();
   return member?.id ?? null;
+}
+
+/** Old codes and sessions are useless once expired; sign-in requests are a natural time to clear them. */
+function pruneExpired() {
+  const now = new Date();
+  db.delete(loginCodes).where(lt(loginCodes.createdAt, new Date(now.getTime() - 24 * 60 * MINUTE))).run();
+  db.delete(sessions).where(lt(sessions.expiresAt, now)).run();
 }
