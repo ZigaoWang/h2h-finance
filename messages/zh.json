@@ -86,7 +86,8 @@
     "noYearAdmin": "设置本年度预算后即可开始记录支出。",
     "noYearMember": "社长尚未设置本年度预算。",
     "setUpYear": "设置预算年度",
-    "ofBudgetShare": "已使用预算 {budget} 的 {share}"
+    "ofBudgetShare": "已使用预算 {budget} 的 {share}",
+    "budget": "预算"
   },
   "common": {
     "save": "保存",

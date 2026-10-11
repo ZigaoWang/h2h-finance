@@ -26,7 +26,7 @@ export function DashboardBody({
 
   return (
     <div className="flex flex-col gap-10">
-      <BudgetOverview summary={summary} showOwed={!isPublic} />
+      <BudgetOverview summary={summary} publicView={isPublic} />
 
       <div className={isPublic ? "grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6" : "grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-6 xl:grid-cols-3"}>
         <Breakdown title={t("byCategory")} slices={summary.byCategory} total={summary.spent.cents} />

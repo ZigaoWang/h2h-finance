@@ -86,7 +86,8 @@
     "noYearAdmin": "Set up this year's budget to start tracking spending.",
     "noYearMember": "The club lead hasn't set up this year's budget yet.",
     "setUpYear": "Set up budget year",
-    "ofBudgetShare": "{share} of {budget} budget"
+    "ofBudgetShare": "{share} of {budget} budget",
+    "budget": "Budget"
   },
   "common": {
     "save": "Save",

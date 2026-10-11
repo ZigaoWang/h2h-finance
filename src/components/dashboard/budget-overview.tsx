@@ -5,7 +5,7 @@ import { formatMoney } from "@/lib/money";
 import type { YearSummary } from "@/lib/stats";
 
 /** The year at a glance: spent against budget, then the figures that follow from it. */
-export function BudgetOverview({ summary, showOwed }: { summary: YearSummary; showOwed: boolean }) {
+export function BudgetOverview({ summary, publicView }: { summary: YearSummary; publicView: boolean }) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
   const { budgetCents, spent, remainingCents } = summary;
@@ -30,23 +30,30 @@ export function BudgetOverview({ summary, showOwed }: { summary: YearSummary; sh
           <div className={cn("h-full rounded-full", over ? "bg-danger" : "bg-ink")} style={{ width: `${Math.min(100, share * 100)}%` }} />
         </div>
         <p className="mt-2 text-[13px] text-muted">
-          {budgetCents > 0 ? t("ofBudgetShare", { budget: formatMoney(budgetCents), share: shareLabel }) : t("noBudget")}
+          {budgetCents <= 0
+            ? t("noBudget")
+            : publicView
+              ? t("budgetUsedShare", { share: shareLabel })
+              : t("ofBudgetShare", { budget: formatMoney(budgetCents), share: shareLabel })}
         </p>
       </div>
-      <Figure label={t("remaining")} value={formatMoney(remainingCents)} tone={over ? "danger" : undefined} className="border-r border-line" />
-      <Figure
-        label={t("pendingReview")}
-        value={formatMoney(summary.pending.cents)}
-        hint={t("items", { count: summary.pending.count })}
-        className={cn(showOwed && "max-lg:border-b max-lg:border-line lg:border-r lg:border-line")}
-      />
-      {showOwed && (
-        <Figure
-          label={t("owed")}
-          value={formatMoney(summary.owed.cents)}
-          hint={t("items", { count: summary.owed.count })}
-          className="max-lg:col-span-2"
-        />
+      {publicView ? (
+        <>
+          <Figure label={t("budget")} value={formatMoney(budgetCents)} className="border-r border-line" />
+          <Figure label={t("remaining")} value={formatMoney(remainingCents)} tone={over ? "danger" : undefined} className="max-lg:border-b max-lg:border-line lg:border-r lg:border-line" />
+          <Figure label={t("expenseCount")} value={String(spent.count)} className="max-lg:col-span-2" />
+        </>
+      ) : (
+        <>
+          <Figure label={t("remaining")} value={formatMoney(remainingCents)} tone={over ? "danger" : undefined} className="border-r border-line" />
+          <Figure
+            label={t("pendingReview")}
+            value={formatMoney(summary.pending.cents)}
+            hint={t("items", { count: summary.pending.count })}
+            className="max-lg:border-b max-lg:border-line lg:border-r lg:border-line"
+          />
+          <Figure label={t("owed")} value={formatMoney(summary.owed.cents)} hint={t("items", { count: summary.owed.count })} className="max-lg:col-span-2" />
+        </>
       )}
     </Panel>
   );
