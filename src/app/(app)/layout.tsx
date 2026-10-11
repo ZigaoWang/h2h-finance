@@ -6,13 +6,13 @@ import { MobileNav, SidebarNav } from "@/components/shell/nav";
 import { Logo } from "@/components/logo";
 import { ButtonLink } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/dal";
-import { countPendingReview } from "@/lib/expenses/queries";
+import { countAwaitingPayback, countPendingReview } from "@/lib/expenses/queries";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const t = await getTranslations();
   const isAdmin = user.role === "admin";
-  const reviewCount = isAdmin ? countPendingReview() : 0;
+  const counts = isAdmin ? { review: countPendingReview(), reimburse: countAwaitingPayback() } : { review: 0, reimburse: 0 };
   const logo = <Logo name={t("brand.org")} product={t("brand.product")} />;
 
   return (
@@ -28,7 +28,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </ButtonLink>
         </div>
         <div className="flex-1 overflow-y-auto px-3">
-          <SidebarNav isAdmin={isAdmin} reviewCount={reviewCount} />
+          <SidebarNav isAdmin={isAdmin} counts={counts} />
         </div>
         <div className="border-t border-line p-2">
           <AccountMenu name={user.name} role={t(`roles.${user.role}`)} />
@@ -41,7 +41,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       </header>
 
       <main className="mx-auto w-full max-w-[1080px] px-4 pt-6 pb-28 sm:px-6 lg:px-10 lg:pt-10 lg:pb-16">{children}</main>
-      <MobileNav isAdmin={isAdmin} reviewCount={reviewCount} />
+      <MobileNav isAdmin={isAdmin} counts={counts} />
     </div>
   );
 }

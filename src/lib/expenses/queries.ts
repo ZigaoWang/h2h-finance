@@ -68,6 +68,10 @@ export function countPendingReview(): number {
   return db.select({ n: count() }).from(expenses).where(eq(expenses.status, "pending")).get()?.n ?? 0;
 }
 
+export function countAwaitingPayback(): number {
+  return db.select({ n: count() }).from(expenses).where(eq(expenses.status, "approved")).get()?.n ?? 0;
+}
+
 export function listOwnExpenses(userId: number, status?: ExpenseStatus): ExpenseRow[] {
   return rows(and(eq(expenses.userId, userId), status ? eq(expenses.status, status) : undefined));
 }

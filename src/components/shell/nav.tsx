@@ -49,7 +49,9 @@ function SidebarLink({ item, pathname, count }: { item: Item; pathname: string; 
   );
 }
 
-export function SidebarNav({ isAdmin, reviewCount }: { isAdmin: boolean; reviewCount: number }) {
+type Counts = { review: number; reimburse: number };
+
+export function SidebarNav({ isAdmin, counts }: { isAdmin: boolean; counts: Counts }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   return (
@@ -63,7 +65,12 @@ export function SidebarNav({ isAdmin, reviewCount }: { isAdmin: boolean; reviewC
         <div className="flex flex-col gap-0.5">
           <p className="mb-1 px-2.5 text-xs font-medium text-faint">{t("adminSection")}</p>
           {ADMIN.map((item) => (
-            <SidebarLink key={item.href} item={item} pathname={pathname} count={item.key === "review" ? reviewCount : undefined} />
+            <SidebarLink
+              key={item.href}
+              item={item}
+              pathname={pathname}
+              count={item.key === "review" ? counts.review : item.key === "reimburse" ? counts.reimburse : undefined}
+            />
           ))}
         </div>
       )}
@@ -71,14 +78,16 @@ export function SidebarNav({ isAdmin, reviewCount }: { isAdmin: boolean; reviewC
   );
 }
 
-export function MobileNav({ isAdmin, reviewCount }: { isAdmin: boolean; reviewCount: number }) {
+export function MobileNav({ isAdmin, counts }: { isAdmin: boolean; counts: Counts }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   if (pathname === "/expenses/new" || /^\/expenses\/\d+\/edit$/.test(pathname)) return null;
 
   const left = isAdmin ? [MEMBER[0], ADMIN[0]] : [MEMBER[0]];
   const right = isAdmin ? [MEMBER[1], ADMIN[1]] : [MEMBER[1]];
-  const tab = (item: Item) => (
+  const tab = (item: Item) => {
+    const count = item.key === "review" ? counts.review : item.key === "reimburse" ? counts.reimburse : 0;
+    return (
     <Link
       key={item.href}
       href={item.href}
@@ -87,13 +96,14 @@ export function MobileNav({ isAdmin, reviewCount }: { isAdmin: boolean; reviewCo
     >
       <item.icon className="size-[22px]" strokeWidth={1.6} aria-hidden />
       {t(item.key)}
-      {item.key === "review" && reviewCount > 0 && (
+      {count > 0 && (
         <span className="num absolute top-1 left-1/2 ml-1.5 min-w-4 rounded-full bg-danger px-1 text-center text-[10px] leading-4 font-semibold text-white">
-          {reviewCount > 99 ? "99+" : reviewCount}
+          {count > 99 ? "99+" : count}
         </span>
       )}
     </Link>
-  );
+    );
+  };
 
   return (
     <nav aria-label={t("label")} className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
