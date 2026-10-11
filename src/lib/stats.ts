@@ -1,0 +1,157 @@
+import "server-only";
+import { and, desc, eq, inArray, sql, sum } from "drizzle-orm";
+import { categories, db, events, expenses, users } from "@/lib/db";
+import type { BudgetYear } from "@/lib/years";
+
+// What counts as spent: approved (whether or not paid back yet). Pending, rejected and voided don't.
+const COUNTED = ["approved", "reimbursed"] as const;
+
+export type Slice = { key: string; nameEn: string; nameZh: string; cents: number; count: number };
+
+const total = sql<number>`coalesce(sum(${expenses.amountCents}), 0)`.mapWith(Number);
+const tally = sql<number>`count(*)`.mapWith(Number);
+
+function inYear(year: BudgetYear) {
+  return and(eq(expenses.yearId, year.id), inArray(expenses.status, COUNTED));
+}
+
+function sumWhere(year: BudgetYear, status: "pending" | "approved") {
+  return (
+    db
+      .select({ cents: total, count: tally })
+      .from(expenses)
+      .where(and(eq(expenses.yearId, year.id), eq(expenses.status, status)))
+      .get() ?? { cents: 0, count: 0 }
+  );
+}
+
+function months(year: BudgetYear): string[] {
+  const list: string[] = [];
+  let [y, m] = year.startsOn.split("-").map(Number);
+  const end = year.endsOn.slice(0, 7);
+  while (list.length < 24) {
+    const key = `${y}-${String(m).padStart(2, "0")}`;
+    list.push(key);
+    if (key >= end) break;
+    m = m === 12 ? 1 : m + 1;
+    if (m === 1) y++;
+  }
+  return list;
+}
+
+export function yearSummary(year: BudgetYear, { includePeople }: { includePeople: boolean }) {
+  const spent = db.select({ cents: total, count: tally }).from(expenses).where(inYear(year)).get() ?? { cents: 0, count: 0 };
+
+  const byCategory: Slice[] = db
+    .select({ id: categories.id, nameEn: categories.nameEn, nameZh: categories.nameZh, cents: total, count: tally })
+    .from(expenses)
+    .innerJoin(categories, eq(categories.id, expenses.categoryId))
+    .where(inYear(year))
+    .groupBy(categories.id)
+    .orderBy(desc(total))
+    .all()
+    .map(({ id, ...rest }) => ({ key: String(id), ...rest }));
+
+  const byEvent: Slice[] = db
+    .select({ id: events.id, nameEn: events.nameEn, nameZh: events.nameZh, cents: total, count: tally })
+    .from(expenses)
+    .leftJoin(events, eq(events.id, expenses.eventId))
+    .where(inYear(year))
+    .groupBy(events.id)
+    .orderBy(desc(total))
+    .all()
+    .map(({ id, nameEn, nameZh, ...rest }) => ({ key: id ? String(id) : "none", nameEn: nameEn ?? "", nameZh: nameZh ?? "", ...rest }));
+
+  const byPerson: Slice[] = includePeople
+    ? db
+        .select({ id: users.id, name: users.name, cents: total, count: tally })
+        .from(expenses)
+        .innerJoin(users, eq(users.id, expenses.userId))
+        .where(inYear(year))
+        .groupBy(users.id)
+        .orderBy(desc(total))
+        .all()
+        .map(({ id, name, ...rest }) => ({ key: String(id), nameEn: name, nameZh: name, ...rest }))
+    : [];
+
+  const monthly = new Map(
+    db
+      .select({ month: sql<string>`substr(${expenses.spentOn}, 1, 7)`, cents: total })
+      .from(expenses)
+      .where(inYear(year))
+      .groupBy(sql`substr(${expenses.spentOn}, 1, 7)`)
+      .all()
+      .map((r) => [r.month, r.cents]),
+  );
+
+  return {
+    budgetCents: year.budgetCents,
+    spent,
+    remainingCents: year.budgetCents - spent.cents,
+    pending: sumWhere(year, "pending"),
+    owed: sumWhere(year, "approved"),
+    byCategory,
+    byEvent,
+    byPerson,
+    monthly: months(year).map((month) => ({ month, cents: monthly.get(month) ?? 0 })),
+  };
+}
+
+export type YearSummary = ReturnType<typeof yearSummary>;
+
+export type Transaction = {
+  id: number;
+  spentOn: string;
+  description: string;
+  merchant: string | null;
+  amountCents: number;
+  status: (typeof COUNTED)[number];
+  categoryEn: string;
+  categoryZh: string;
+  eventEn: string | null;
+  eventZh: string | null;
+  userName: string | null;
+  userId: number | null;
+};
+
+/**
+ * Recent counted spending. The public version leaves out who spent it and where, since
+ * merchants and names can identify members; the description is written to be public.
+ */
+export function recentTransactions(year: BudgetYear, { publicView, limit }: { publicView: boolean; limit: number }): Transaction[] {
+  return db
+    .select({
+      id: expenses.id,
+      spentOn: expenses.spentOn,
+      description: expenses.description,
+      merchant: publicView ? sql<null>`null` : expenses.merchant,
+      amountCents: expenses.amountCents,
+      status: sql<(typeof COUNTED)[number]>`${expenses.status}`,
+      categoryEn: categories.nameEn,
+      categoryZh: categories.nameZh,
+      eventEn: events.nameEn,
+      eventZh: events.nameZh,
+      userName: publicView ? sql<null>`null` : users.name,
+      userId: publicView ? sql<null>`null` : users.id,
+    })
+    .from(expenses)
+    .innerJoin(categories, eq(categories.id, expenses.categoryId))
+    .innerJoin(users, eq(users.id, expenses.userId))
+    .leftJoin(events, eq(events.id, expenses.eventId))
+    .where(inYear(year))
+    .orderBy(desc(expenses.spentOn), desc(expenses.id))
+    .limit(limit)
+    .all();
+}
+
+/** Approved but not yet paid back, per member, across all years. */
+export function owedByMember() {
+  return db
+    .select({ userId: users.id, name: users.name, email: users.email, cents: sum(expenses.amountCents).mapWith(Number), count: tally })
+    .from(expenses)
+    .innerJoin(users, eq(users.id, expenses.userId))
+    .where(eq(expenses.status, "approved"))
+    .groupBy(users.id)
+    .orderBy(desc(sum(expenses.amountCents)))
+    .all();
+}

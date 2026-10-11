@@ -65,9 +65,11 @@ function CodeStep({
   }, [wait]);
 
   // A failed attempt clears the box so the next code can be typed straight away.
-  useEffect(() => {
+  const [checked, setChecked] = useState(state);
+  if (checked !== state) {
+    setChecked(state);
     if (state.error) setCode("");
-  }, [state]);
+  }
 
   return (
     <form ref={formRef} action={action} className="flex flex-col gap-5">

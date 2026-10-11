@@ -40,5 +40,41 @@
     "account": "Account",
     "language": "Language",
     "signOut": "Sign out"
+  },
+  "status": {
+    "pending": "Pending review",
+    "approved": "Approved",
+    "reimbursed": "Paid back",
+    "rejected": "Rejected",
+    "voided": "Voided"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "year": "Budget year",
+    "spent": "Spent this year",
+    "ofBudget": "of {budget} budget",
+    "budgetUsed": "Budget used",
+    "budgetUsedShare": "{share} of the budget used",
+    "noBudget": "No budget set for this year",
+    "remaining": "Remaining",
+    "expenseCount": "Expenses",
+    "pendingReview": "Waiting for review",
+    "owed": "Owed to members",
+    "items": "{count, plural, =0 {None} one {# item} other {# items}}",
+    "byCategory": "By category",
+    "byEvent": "By event",
+    "byPerson": "By person",
+    "byMonth": "By month",
+    "noEvent": "Not tied to an event",
+    "nothingYet": "Nothing spent yet.",
+    "recent": "Recent spending",
+    "recentPublicHint": "Approved expenses, newest first.",
+    "owedTitle": "Still to pay back",
+    "owedHint": "Approved expenses members paid for themselves.",
+    "allPaid": "Everyone has been paid back.",
+    "noYearTitle": "No budget year yet",
+    "noYearAdmin": "Set up this year's budget to start tracking spending.",
+    "noYearMember": "The club lead hasn't set up this year's budget yet.",
+    "setUpYear": "Set up budget year"
   }
 }

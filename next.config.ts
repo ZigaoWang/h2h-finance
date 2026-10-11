@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "1mb" },
   },
   turbopack: {
+    root: import.meta.dirname,
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

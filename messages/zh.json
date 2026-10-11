@@ -40,5 +40,41 @@
     "account": "账户",
     "language": "语言",
     "signOut": "退出登录"
+  },
+  "status": {
+    "pending": "待审核",
+    "approved": "已批准",
+    "reimbursed": "已报销",
+    "rejected": "已驳回",
+    "voided": "已作废"
+  },
+  "dashboard": {
+    "title": "总览",
+    "year": "预算年度",
+    "spent": "本年度已支出",
+    "ofBudget": "预算 {budget}",
+    "budgetUsed": "预算使用情况",
+    "budgetUsedShare": "已使用预算的 {share}",
+    "noBudget": "本年度尚未设置预算",
+    "remaining": "剩余预算",
+    "expenseCount": "支出笔数",
+    "pendingReview": "待审核",
+    "owed": "待报销给成员",
+    "items": "{count, plural, =0 {无} other {# 笔}}",
+    "byCategory": "按类别",
+    "byEvent": "按活动",
+    "byPerson": "按成员",
+    "byMonth": "按月份",
+    "noEvent": "不属于任何活动",
+    "nothingYet": "暂无支出。",
+    "recent": "最近支出",
+    "recentPublicHint": "已批准的支出，按时间倒序。",
+    "owedTitle": "待报销",
+    "owedHint": "成员自行垫付、已批准但尚未报销的支出。",
+    "allPaid": "所有成员均已报销。",
+    "noYearTitle": "尚未设置预算年度",
+    "noYearAdmin": "设置本年度预算后即可开始记录支出。",
+    "noYearMember": "社长尚未设置本年度预算。",
+    "setUpYear": "设置预算年度"
   }
 }
