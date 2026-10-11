@@ -24,7 +24,7 @@ describe("parseReceiptText", () => {
 商 户 全 称    上海福满家便利有限公司
 支 付 方 式    零钱
 `;
-    expect(parseReceiptText(text)).toEqual({ amountCents: 2500, merchant: "全家便利店", spentOn: "2026-10-11" });
+    expect(parseReceiptText(text)).toEqual({ amountCents: 2500, merchant: "全家便利店", spentOn: "2026-10-11", paidAt: "14:23" });
   });
 
   it("reads an Alipay bill", () => {
@@ -36,7 +36,7 @@ describe("parseReceiptText", () => {
 付 款 方 式 余额宝
 收 款 方 全 称 金拱门（中国）有限公司
 `;
-    expect(parseReceiptText(text)).toEqual({ amountCents: 12850, merchant: "麦当劳", spentOn: "2026-09-03" });
+    expect(parseReceiptText(text)).toEqual({ amountCents: 12850, merchant: "麦当劳", spentOn: "2026-09-03", paidAt: "12:01" });
   });
 
   it("reads a WeChat payment success screen where OCR misreads the yuan sign", () => {
@@ -58,7 +58,7 @@ Y 36.00
 实 付 款 ¥ 1,086.40
 下 单 时 间 : 2026-10-02 20:14:09
 `;
-    expect(parseReceiptText(text)).toEqual({ amountCents: 108640, merchant: "烘焙原料旗舰店", spentOn: "2026-10-02" });
+    expect(parseReceiptText(text)).toEqual({ amountCents: 108640, merchant: "烘焙原料旗舰店", spentOn: "2026-10-02", paidAt: "20:14" });
   });
 
   it("reads an English-language WeChat bill", () => {
@@ -69,7 +69,7 @@ Status Payment Successful
 Transaction Time Oct 3, 2026 2026-10-03 09:12:00
 Merchant Name Starbucks Coffee (Shanghai) Co., Ltd.
 `;
-    expect(parseReceiptText(text)).toEqual({ amountCents: 4200, merchant: "Starbucks", spentOn: "2026-10-03" });
+    expect(parseReceiptText(text)).toEqual({ amountCents: 4200, merchant: "Starbucks", spentOn: "2026-10-03", paidAt: "09:12" });
   });
 
   // Real OCR output from a club member's screenshots, so the parser is checked against what Tesseract actually produces.
@@ -97,7 +97,13 @@ Merchant Name Starbucks Coffee (Shanghai) Co., Ltd.
 
 商家小程序                        LAE >
 账单服务`;
-    expect(parseReceiptText(text)).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24" });
+    expect(parseReceiptText(text)).toEqual({
+      amountCents: 3120,
+      merchant: "闪送",
+      spentOn: "2026-09-24",
+      paidAt: "21:47",
+      transactionId: "4500000429202609247505106987",
+    });
   });
 
   it("reads a real Alipay balance detail", () => {
@@ -123,8 +129,17 @@ OPENROUTER, INC
 
 对方账户          OpenRouter, Inc
 
+交易号           202610102200146407143785339
+8
+
 余额                   Y3.81`;
-    expect(parseReceiptText(text)).toEqual({ amountCents: 14213, merchant: "OPENROUTER, INC", spentOn: "2026-10-10" });
+    expect(parseReceiptText(text)).toEqual({
+      amountCents: 14213,
+      merchant: "OPENROUTER, INC",
+      spentOn: "2026-10-10",
+      paidAt: "10:53",
+      transactionId: "2026101022001464071437853398",
+    });
   });
 
   it("leaves fields empty rather than guessing", () => {
@@ -141,16 +156,16 @@ describe("combineReadings", () => {
   const detailOnly = "支付时间 2026年9月24日 21:47:10\n商户全称 北京同城必应科技有限公司";
 
   it("takes the amount and shop from the reading that found the headline", () => {
-    expect(combineReadings([headline, detailOnly])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24" });
-    expect(combineReadings([detailOnly, headline])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24" });
+    expect(combineReadings([headline, detailOnly])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24", paidAt: "21:47" });
+    expect(combineReadings([detailOnly, headline])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24", paidAt: "21:47" });
   });
 
   it("falls back to labelled fields when no reading found a headline", () => {
-    expect(combineReadings([detailOnly, detailOnly])).toEqual({ merchant: "北京同城必应科技有限公司", spentOn: "2026-09-24" });
+    expect(combineReadings([detailOnly, detailOnly])).toEqual({ merchant: "北京同城必应科技有限公司", spentOn: "2026-09-24", paidAt: "21:47" });
   });
 
   it("leaves a field empty when readings disagree", () => {
     const misread = headline.replace("9月24日", "9月21日");
-    expect(combineReadings([headline, misread])).toEqual({ amountCents: 3120, merchant: "闪送" });
+    expect(combineReadings([headline, misread])).toEqual({ amountCents: 3120, merchant: "闪送", paidAt: "21:47" });
   });
 });

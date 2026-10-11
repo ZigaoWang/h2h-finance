@@ -181,6 +181,10 @@ export type OcrResult = {
   amountCents?: number;
   merchant?: string;
   spentOn?: string;
+  // "21:47", when the screenshot shows it.
+  paidAt?: string;
+  // The payment platform's own transaction number, the strongest duplicate signal there is.
+  transactionId?: string;
 };
 
 export const auditLog = sqliteTable(
