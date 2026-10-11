@@ -419,9 +419,10 @@
   "home": {
     "private": "账目暂未公开。",
     "noYear": "尚未公布预算。",
-    "footer": "心连心 · 包玉刚实验学校",
     "signIn": "成员登录",
-    "openDashboard": "进入总览"
+    "openDashboard": "进入总览",
+    "mainSite": "心连心官网",
+    "madeBy": "由 <link>王子高</link> 制作"
   },
   "allExpenses": {
     "title": "全部报销",

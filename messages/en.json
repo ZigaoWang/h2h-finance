@@ -419,9 +419,10 @@
   "home": {
     "private": "The accounts aren't public at the moment.",
     "noYear": "No budget has been published yet.",
-    "footer": "Heart to Heart · YK Pao School",
     "signIn": "Member sign in",
-    "openDashboard": "Open dashboard"
+    "openDashboard": "Open dashboard",
+    "mainSite": "Heart to Heart website",
+    "madeBy": "Made by <link>Zigao Wang</link>"
   },
   "allExpenses": {
     "title": "All expenses",

@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { DashboardBody } from "@/components/dashboard/dashboard-body";
 import { LocaleSwitch } from "@/components/locale-switch";
 import { LogoMark } from "@/components/logo";
+import { MadeBy } from "@/components/made-by";
 import { YearSwitch } from "@/components/year-switch";
 import { EmptyState, Panel } from "@/components/ui/card";
 import { getSessionUser } from "@/lib/auth/dal";
@@ -59,7 +60,13 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-4 px-4 py-6 sm:px-6">
-          <p className="text-[13px] text-muted">{t("home.footer")}</p>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted">
+            <a href="https://h2h.ykps.net" className="font-medium text-ink-2 hover:text-ink">
+              {t("home.mainSite")}
+            </a>
+            <span aria-hidden>·</span>
+            <MadeBy />
+          </p>
           <div className="flex items-center gap-4">
             <LocaleSwitch />
             <Link href={signedIn ? "/dashboard" : "/login"} className="inline-flex items-center gap-1 text-[13px] font-medium text-ink hover:underline hover:underline-offset-4">
