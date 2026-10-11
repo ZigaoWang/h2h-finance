@@ -429,7 +429,8 @@
     "signIn": "Member sign in",
     "openDashboard": "Open dashboard",
     "mainSite": "Heart to Heart website",
-    "madeBy": "Made by <link>Zigao Wang</link>"
+    "madeBy": "Made by <link>Zigao Wang</link>",
+    "openSource": "Open source on GitHub"
   },
   "allExpenses": {
     "title": "All expenses",
