@@ -272,5 +272,80 @@
     "empty": "你还没有提交过报销",
     "emptyHint": "为社团垫付了费用？上传支付截图，审核通过后即可报销。",
     "emptyFiltered": "暂无记录"
+  },
+  "expense": {
+    "title": "报销 #{id}",
+    "editTitle": "编辑报销",
+    "backToMine": "我的报销",
+    "backToDashboard": "总览",
+    "merchant": "商家",
+    "date": "付款日期",
+    "category": "类别",
+    "event": "活动",
+    "submittedBy": "提交人",
+    "submittedAt": "提交时间",
+    "note": "备注",
+    "rejectedTitle": "已驳回",
+    "voidedTitle": "批准后已作废",
+    "awaitingPayback": "已批准，将尽快打款。",
+    "paidBackOn": "已于 {date} 报销",
+    "viewTransfer": "查看转账凭证",
+    "openOriginal": "查看原图",
+    "receiptAlt": "凭证 {number}",
+    "edit": "编辑",
+    "fixAndResubmit": "修改并重新提交",
+    "withdraw": "撤回",
+    "keep": "保留",
+    "withdrawTitle": "撤回这笔报销？",
+    "withdrawHint": "将在审核前删除，之后可以重新提交。",
+    "withdrawn": "已撤回报销",
+    "duplicates": {
+      "title": "可能重复报销",
+      "exact": "与 <ref>#{id}</ref> 使用了同一张截图。",
+      "similar": "与 <ref>#{id}</ref> 的截图几乎相同且金额一致。",
+      "details": "与 <ref>#{id}</ref> 的金额、商家和日期相同。",
+      "earlier": "同一张截图曾经提交过，后来被撤回。"
+    },
+    "history": {
+      "title": "记录",
+      "paid": "已打款",
+      "submitted": "{name} 提交",
+      "updated": "{name} 修改",
+      "approved": "{name} 批准",
+      "rejected": "{name} 驳回",
+      "voided": "{name} 作废"
+    }
+  },
+  "review": {
+    "approve": "批准",
+    "reject": "驳回",
+    "cancel": "取消",
+    "approved": "已批准",
+    "rejected": "已驳回",
+    "voided": "已作废",
+    "rejectTitle": "驳回这笔报销",
+    "rejectHint": "成员会看到驳回原因，并可修改后重新提交。",
+    "reason": "原因",
+    "reasons": {
+      "unclear": "截图不清晰",
+      "notClub": "不属于社团支出",
+      "duplicate": "已经提交过",
+      "wrongAmount": "金额与截图不符"
+    },
+    "void": "作废",
+    "voidTitle": "作废已批准的报销",
+    "voidHint": "该记录会连同原因保留，但不再计入支出。仅用于纠正错误。"
+  },
+  "reviewQueue": {
+    "title": "审核",
+    "description": "等待批准的报销。",
+    "summary": "{count} 笔待审核 · {total}",
+    "emptyTitle": "已全部处理",
+    "emptyHint": "新的报销会显示在这里。",
+    "possibleDuplicate": "可能重复",
+    "selected": "当前报销",
+    "backToQueue": "返回列表（{count}）",
+    "expense": "报销 #{id}",
+    "openFull": "打开完整页面"
   }
 }

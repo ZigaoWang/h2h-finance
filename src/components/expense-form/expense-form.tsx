@@ -43,7 +43,7 @@ export type ExpenseFormProps = {
   edit?: {
     id: number;
     item: { amountCents: number; merchant: string; spentOn: string; fileIds: string[] };
-    categoryId: number;
+    categoryId: number | null;
     eventId: number | null;
     description: string;
     note: string | null;

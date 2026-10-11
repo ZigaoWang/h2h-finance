@@ -272,5 +272,80 @@
     "empty": "You haven't submitted anything yet",
     "emptyHint": "Bought something for the club? Add the payment screenshot and you'll be paid back once it's approved.",
     "emptyFiltered": "Nothing here"
+  },
+  "expense": {
+    "title": "Expense #{id}",
+    "editTitle": "Edit expense",
+    "backToMine": "My expenses",
+    "backToDashboard": "Dashboard",
+    "merchant": "Shop",
+    "date": "Date paid",
+    "category": "Category",
+    "event": "Event",
+    "submittedBy": "Submitted by",
+    "submittedAt": "Submitted",
+    "note": "Private note",
+    "rejectedTitle": "Rejected",
+    "voidedTitle": "Voided after approval",
+    "awaitingPayback": "Approved. You'll be paid back soon.",
+    "paidBackOn": "Paid back on {date}",
+    "viewTransfer": "View transfer",
+    "openOriginal": "Open full size",
+    "receiptAlt": "Receipt {number}",
+    "edit": "Edit",
+    "fixAndResubmit": "Fix and resubmit",
+    "withdraw": "Withdraw",
+    "keep": "Keep it",
+    "withdrawTitle": "Withdraw this expense?",
+    "withdrawHint": "It will be removed before anyone reviews it. You can submit it again later.",
+    "withdrawn": "Expense withdrawn",
+    "duplicates": {
+      "title": "Possible double claim",
+      "exact": "The same screenshot is attached to <ref>#{id}</ref>.",
+      "similar": "A near-identical screenshot with the same amount is attached to <ref>#{id}</ref>.",
+      "details": "Same amount, shop and date as <ref>#{id}</ref>.",
+      "earlier": "The same screenshot was submitted before and later withdrawn."
+    },
+    "history": {
+      "title": "History",
+      "paid": "Paid back",
+      "submitted": "Submitted by {name}",
+      "updated": "Edited by {name}",
+      "approved": "Approved by {name}",
+      "rejected": "Rejected by {name}",
+      "voided": "Voided by {name}"
+    }
+  },
+  "review": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "cancel": "Cancel",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "voided": "Voided",
+    "rejectTitle": "Reject this expense",
+    "rejectHint": "The member sees this reason and can fix the expense and resubmit it.",
+    "reason": "Reason",
+    "reasons": {
+      "unclear": "The screenshot is unclear",
+      "notClub": "Not a club expense",
+      "duplicate": "Already submitted",
+      "wrongAmount": "Amount doesn't match the screenshot"
+    },
+    "void": "Void",
+    "voidTitle": "Void this approved expense",
+    "voidHint": "It stays on record with your reason, but no longer counts towards spending. Use this only to correct a mistake."
+  },
+  "reviewQueue": {
+    "title": "Review",
+    "description": "Expenses waiting for approval.",
+    "summary": "{count, plural, one {# expense} other {# expenses}} waiting · {total}",
+    "emptyTitle": "All caught up",
+    "emptyHint": "New submissions will show up here.",
+    "possibleDuplicate": "Possible duplicate",
+    "selected": "Selected expense",
+    "backToQueue": "Back to queue ({count})",
+    "expense": "Expense #{id}",
+    "openFull": "Open full page"
   }
 }
