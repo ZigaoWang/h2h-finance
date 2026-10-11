@@ -155,7 +155,7 @@ export function PayBackForm({ userId, expenses, today }: { userId: number; expen
         <p className="text-[13px] text-muted">{t("transferHint")}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label={t("paidOn")} htmlFor="paid-on">
           <Input id="paid-on" type="date" max={today} value={paidOn} onChange={(e) => setPaidOn(e.target.value)} required />
         </Field>

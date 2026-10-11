@@ -28,14 +28,14 @@ export function DashboardBody({
     <div className="flex flex-col gap-4 md:gap-5">
       <BudgetOverview summary={summary} showOwed={!isPublic} />
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
         <Breakdown title={t("byCategory")} slices={summary.byCategory} total={summary.spent.cents} />
         <Breakdown title={t("byEvent")} slices={summary.byEvent} total={summary.spent.cents} fallback={t("noEvent")} />
         {!isPublic && <Breakdown title={t("byPerson")} slices={summary.byPerson} total={summary.spent.cents} />}
         <MonthlyChart data={summary.monthly} className={isPublic ? "md:col-span-2" : undefined} />
       </div>
 
-      <div className={isPublic ? "" : "grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] md:items-start md:gap-5"}>
+      <div className={isPublic ? "" : "grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] md:items-start md:gap-5"}>
         <Card>
           <CardHeader title={t("recent")} description={isPublic ? t("recentPublicHint") : undefined} />
           {transactions.length ? (

@@ -21,7 +21,7 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
   const isOwner = expense.userId === viewer.id;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
       <div className="flex flex-col gap-5 lg:order-2">
         <Card className="p-5">
           <div className="flex items-start justify-between gap-4">

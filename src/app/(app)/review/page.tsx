@@ -45,7 +45,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
           <EmptyState title={t("emptyTitle")} description={t("emptyHint")} />
         </Card>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
           <Card className={cn("overflow-hidden lg:sticky lg:top-20", explicit && "max-lg:hidden")}>
             <ul className="divide-y divide-line lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto">
               {pending.map((e) => {
