@@ -244,3 +244,8 @@ it("counts a less confident agreeing read as a vote (闪送 read twice beats one
   expect(combineReadings([read(71, "滴泣出行")]).merchant).toBeUndefined();
 });
 
+it("trusts the date that the transaction number confirms over a majority misread", () => {
+  const misread = lines([[95, "-45.00"], [88, "支付时间 2026年8月4日 18:52:52"]]);
+  const right = lines([[95, "-45.00"], [85, "支付时间 2026年8月14日 18:52:52"], [90, "交易单号 4500000323202608147377866981"]]);
+  expect(combineReadings([misread, misread, right])).toMatchObject({ spentOn: "2026-08-14", transactionId: "4500000323202608147377866981" });
+});

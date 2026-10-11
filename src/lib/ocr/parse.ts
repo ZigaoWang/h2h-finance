@@ -232,7 +232,13 @@ export function combineReadings(readings: OcrLine[][]): OcrResult {
     pick(parsed.map((r) => r.legalName)) ??
     pick(parsed.map((r) => r.headlineName));
   if (merchant) result.merchant = merchant;
-  const spentOn = pick(parsed.map((r) => r.spentOn));
+  // The platform transaction number embeds the payment date, so a date found inside any number
+  // that was read is far stronger evidence than which way the votes fell.
+  const numbers = parsed.map((r) => r.transactionId?.value).filter((n): n is string => !!n && /^\d{28}$/.test(n));
+  const confirmed = parsed
+    .map((r) => r.spentOn?.value)
+    .find((date) => date && numbers.some((n) => n.includes(date.replaceAll("-", ""))));
+  const spentOn = confirmed ?? pick(parsed.map((r) => r.spentOn));
   if (spentOn) result.spentOn = spentOn;
   const paidAt = spentOn ? pick(parsed.filter((r) => r.spentOn?.value === spentOn).map((r) => r.paidAt)) : undefined;
   if (paidAt) result.paidAt = paidAt;
