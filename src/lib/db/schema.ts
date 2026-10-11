@@ -116,6 +116,7 @@ export const expenses = sqliteTable(
     voidReason: text("void_reason"),
     createdAt: createdAt(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }),
+    updatedBy: integer("updated_by").references(() => users.id),
   },
   (t) => [
     index("expenses_user_idx").on(t.userId, t.status),
@@ -138,12 +139,29 @@ export const reimbursements = sqliteTable(
     paidBy: integer("paid_by")
       .notNull()
       .references(() => users.id),
+    // An undone reimbursement stays on record; its expenses go back to "to be paid back".
+    undoneAt: integer("undone_at", { mode: "timestamp_ms" }),
+    undoneBy: integer("undone_by").references(() => users.id),
+    undoReason: text("undo_reason"),
     createdAt: createdAt(),
   },
   (t) => [
     index("reimbursements_user_idx").on(t.userId),
     check("reimbursements_amount_check", sql`${t.amountCents} > 0`),
   ],
+);
+
+// Every earlier version of every expense, written by database triggers on each change or
+// deletion, so no edit can go unrecorded however it's made.
+export const expenseRevisions = sqliteTable(
+  "expense_revisions",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    expenseId: integer("expense_id").notNull(),
+    row: text("row", { mode: "json" }).notNull().$type<Record<string, unknown>>(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("expense_revisions_expense_idx").on(t.expenseId)],
 );
 
 export const FILE_KINDS = ["receipt", "transfer"] as const;

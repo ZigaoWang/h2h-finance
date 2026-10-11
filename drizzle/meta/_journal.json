@@ -15,6 +15,20 @@
       "when": 1791717945003,
       "tag": "0001_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791720591345,
+      "tag": "0002_revisions",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791720614847,
+      "tag": "0003_editable-history",
+      "breakpoints": true
     }
   ]
 }

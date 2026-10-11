@@ -27,11 +27,13 @@ beforeEach(() => {
 const approve = () => run("update expenses set status = 'approved', reviewed_by = 1, reviewed_at = 1 where id = 1");
 
 describe("pending expenses", () => {
-  it("can be edited and withdrawn", () => {
+  it("can be edited and withdrawn, leaving a copy of what was deleted", () => {
     run("update expenses set amount_cents = 3000 where id = 1");
     run("update files set expense_id = null where id = 'f1'");
     run("delete from expenses where id = 1");
     expect(sqlite.prepare("select count(*) n from expenses").get()).toEqual({ n: 0 });
+    const last = sqlite.prepare("select row from expense_revisions where expense_id = 1 order by id desc").get() as { row: string };
+    expect(JSON.parse(last.row)).toMatchObject({ deleted: 1, amount_cents: 3000 });
   });
 
   it("reject zero and negative amounts", () => {
@@ -39,49 +41,65 @@ describe("pending expenses", () => {
   });
 });
 
+const revisions = () => (sqlite.prepare("select count(*) n from expense_revisions where expense_id = 1").get() as { n: number }).n;
+
 describe("approved expenses", () => {
   beforeEach(approve);
 
-  it("can't have their details changed", () => {
-    for (const change of ["amount_cents = 1", "merchant = 'x'", "spent_on = '2026-10-02'", "description = 'x'", "user_id = 1", "category_id = 1, note = 'x'"]) {
-      expect(() => run(`update expenses set ${change} where id = 1`), change).toThrow(/cannot be changed/);
-    }
+  it("can be edited, and every earlier version is kept", () => {
+    const before = revisions();
+    run("update expenses set amount_cents = 3000, updated_by = 1 where id = 1");
+    expect(revisions()).toBe(before + 1);
+    const last = sqlite.prepare("select row from expense_revisions where expense_id = 1 order by id desc").get() as { row: string };
+    expect(JSON.parse(last.row)).toMatchObject({ amount_cents: 2500, status: "approved" });
   });
 
-  it("can't be deleted, and neither can their receipts", () => {
+  it("can't be hard-deleted, and neither can their receipts", () => {
     expect(() => run("delete from expenses where id = 1")).toThrow(/only pending/);
     expect(() => run("delete from files where id = 'f1'")).toThrow();
     expect(() => run("update files set expense_id = null where id = 'f1'")).toThrow();
   });
 
-  it("can't go back to pending or rejected", () => {
-    expect(() => run("update expenses set status = 'pending' where id = 1")).toThrow(/invalid status/);
-    expect(() => run("update expenses set status = 'rejected' where id = 1")).toThrow(/invalid status/);
-  });
-
-  it("can be voided only with a reason, after which it's final", () => {
-    expect(() => run("update expenses set status = 'voided' where id = 1")).toThrow(/invalid status/);
+  it("keep their history even when deleted by marking", () => {
     run("update expenses set status = 'voided', voided_by = 1, voided_at = 1, void_reason = 'Duplicate' where id = 1");
-    expect(status(1)).toBe("voided");
-    expect(() => run("update expenses set status = 'approved' where id = 1")).toThrow();
-    expect(() => run("update expenses set void_reason = 'x' where id = 1")).toThrow();
+    const last = sqlite.prepare("select row from expense_revisions where expense_id = 1 order by id desc").get() as { row: string };
+    expect(JSON.parse(last.row)).toMatchObject({ status: "approved" });
   });
+});
 
-  it("can be reimbursed, after which it's final", () => {
-    expect(() => run("update expenses set status = 'reimbursed' where id = 1")).toThrow(/invalid status/);
+describe("reimbursed expenses", () => {
+  beforeEach(() => {
+    approve();
     run("insert into reimbursements (id, user_id, amount_cents, paid_on, paid_by) values (1, 2, 2500, '2026-10-05', 1)");
     run("update expenses set status = 'reimbursed', reimbursement_id = 1 where id = 1");
-    expect(status(1)).toBe("reimbursed");
-    expect(() => run("update expenses set status = 'voided', voided_by = 1, voided_at = 1, void_reason = 'x' where id = 1")).toThrow();
-    expect(() => run("update expenses set reimbursement_id = null where id = 1")).toThrow();
+  });
+
+  it("can't change who was paid or how much while the reimbursement stands", () => {
+    expect(() => run("update expenses set amount_cents = 1 where id = 1")).toThrow(/undo the reimbursement/);
+    expect(() => run("update expenses set user_id = 1 where id = 1")).toThrow(/undo the reimbursement/);
+    run("update expenses set description = 'Flour and sugar' where id = 1");
+  });
+
+  it("go back to approved when the reimbursement is undone, once, with a reason", () => {
+    expect(() => run("update reimbursements set undone_at = 1 where id = 1")).toThrow(/only be undone/);
+    run("update reimbursements set undone_at = 1, undone_by = 1, undo_reason = 'Wrong person' where id = 1");
+    run("update expenses set status = 'approved', reimbursement_id = null where id = 1");
+    expect(status(1)).toBe("approved");
+    expect(() => run("update reimbursements set undo_reason = 'x' where id = 1")).toThrow(/only be undone/);
   });
 });
 
 describe("permanent records", () => {
-  it("reimbursements can't be changed or deleted", () => {
+  it("reimbursements can't be edited or deleted", () => {
     run("insert into reimbursements (id, user_id, amount_cents, paid_on, paid_by) values (1, 2, 2500, '2026-10-05', 1)");
-    expect(() => run("update reimbursements set amount_cents = 1")).toThrow(/permanent/);
+    expect(() => run("update reimbursements set amount_cents = 1")).toThrow(/only be undone/);
     expect(() => run("delete from reimbursements")).toThrow(/permanent/);
+  });
+
+  it("expense history can't be edited or deleted", () => {
+    run("update expenses set description = 'x' where id = 1");
+    expect(() => run("update expense_revisions set row = '{}'")).toThrow(/append-only/);
+    expect(() => run("delete from expense_revisions")).toThrow(/append-only/);
   });
 
   it("the audit log is append-only", () => {
