@@ -450,8 +450,9 @@
     "summary": "共 {count} 笔 · 已批准 {total}"
   },
   "footer": {
-    "label": "页脚",
-    "website": "心连心",
-    "license": "基于 <license>AGPL-3.0</license> 开源"
+    "club": "心连心",
+    "license": "基于 AGPL-3.0 授权",
+    "source": "GitHub 开源",
+    "madeBy": "由 <author>王子高</author> 制作"
   }
 }

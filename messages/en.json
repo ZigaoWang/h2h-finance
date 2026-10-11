@@ -450,8 +450,9 @@
     "summary": "{count, plural, one {# expense} other {# expenses}} · {total} approved"
   },
   "footer": {
-    "label": "Footer",
-    "website": "Heart to Heart",
-    "license": "Open source under <license>AGPL-3.0</license>"
+    "club": "Heart to Heart",
+    "license": "Licensed under AGPL-3.0",
+    "source": "Open source on GitHub",
+    "madeBy": "Made by <author>Zigao Wang</author>"
   }
 }
