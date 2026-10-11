@@ -16,7 +16,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
     "@tesseract.js-data/chi_sim": "^1.0.0",
