@@ -5,7 +5,7 @@ import path from "node:path";
 import sharp from "sharp";
 import { createWorker, OEM, PSM, type Worker } from "tesseract.js";
 import type { OcrResult } from "@/lib/db/schema";
-import { combineReadings } from "./parse";
+import { combineReadings, type OcrLine } from "./parse";
 
 // English first: tesseract.js fails to load the second language when chi_sim leads.
 const LANGUAGES = ["eng", "chi_sim"];
@@ -40,11 +40,14 @@ function getWorker() {
   return worker;
 }
 
-async function recognize(image: Buffer, width: number): Promise<string> {
+async function recognize(image: Buffer, width: number): Promise<OcrLine[]> {
   const prepared = await sharp(image).rotate().resize({ width }).greyscale().normalise().png().toBuffer();
   const w = await getWorker();
-  const { data } = await w.recognize(prepared);
-  return data.text;
+  const { data } = await w.recognize(prepared, {}, { blocks: true });
+  // Each line keeps Tesseract's confidence, so garbled reads can be told apart from clean ones.
+  return (data.blocks ?? []).flatMap((block) =>
+    block.paragraphs.flatMap((paragraph) => paragraph.lines.map((line) => ({ text: line.text, confidence: line.confidence }))),
+  );
 }
 
 // No single scale reads every screenshot: the headline amount is huge and thin and Tesseract

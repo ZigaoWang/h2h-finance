@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combineReadings, normalizeLine, parseReceiptText } from "./parse";
+import { combineReadings, normalizeLine, parseReceiptText, textToLines, type OcrLine } from "./parse";
 
 describe("normalizeLine", () => {
   it("joins Chinese characters that OCR split apart", () => {
@@ -135,7 +135,7 @@ OPENROUTER, INC
 余额                   Y3.81`;
     expect(parseReceiptText(text)).toEqual({
       amountCents: 14213,
-      merchant: "OPENROUTER, INC",
+      merchant: "OpenRouter, Inc",
       spentOn: "2026-10-10",
       paidAt: "10:53",
       transactionId: "2026101022001464071437853398",
@@ -160,16 +160,51 @@ describe("combineReadings", () => {
   const detailOnly = "支付时间 2026年9月24日 21:47:10\n商户全称 北京同城必应科技有限公司";
 
   it("takes the amount and shop from the reading that found the headline", () => {
-    expect(combineReadings([headline, detailOnly])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24", paidAt: "21:47" });
-    expect(combineReadings([detailOnly, headline])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24", paidAt: "21:47" });
+    expect(combineReadings([textToLines(headline), textToLines(detailOnly)])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24", paidAt: "21:47" });
+    expect(combineReadings([textToLines(detailOnly), textToLines(headline)])).toEqual({ amountCents: 3120, merchant: "闪送", spentOn: "2026-09-24", paidAt: "21:47" });
   });
 
   it("falls back to labelled fields when no reading found a headline", () => {
-    expect(combineReadings([detailOnly, detailOnly])).toEqual({ merchant: "北京同城必应科技有限公司", spentOn: "2026-09-24", paidAt: "21:47" });
+    expect(combineReadings([textToLines(detailOnly), textToLines(detailOnly)])).toEqual({ merchant: "北京同城必应科技有限公司", spentOn: "2026-09-24", paidAt: "21:47" });
   });
 
   it("leaves a field empty when readings disagree", () => {
     const misread = headline.replace("9月24日", "9月21日");
-    expect(combineReadings([headline, misread])).toEqual({ amountCents: 3120, merchant: "闪送", paidAt: "21:47" });
+    expect(combineReadings([textToLines(headline), textToLines(misread)])).toEqual({ amountCents: 3120, merchant: "闪送" });
   });
 });
+
+// Real Tesseract output with its line confidences, from members' screenshots.
+const lines = (rows: [number, string][]): OcrLine[] => rows.map(([confidence, text]) => ({ text, confidence }));
+
+describe("confidence", () => {
+  it("ignores a garbled shop name and falls back to the legal name (DiDi, WeChat)", () => {
+    const small = lines([[54, "HAT"], [91, "-45.00"], [93, "支付时间     2026年8月14日 18:52:52"], [93, "商户全称       天津舒行科技有限公司"], [89, "交易单号       4500000323202608147377866981"]]);
+    const large = lines([[71, "滴泣出行"], [90, "-45.00"], [92, "支付时间     2026年8月14日 18:52:52"], [91, "商户全称       天津舒行科技有限公司"], [93, "交易单号       4500000323202608147377866981"]]);
+    expect(combineReadings([small, large])).toEqual({
+      amountCents: 4500,
+      merchant: "天津舒行科技有限公司",
+      spentOn: "2026-08-14",
+      paidAt: "18:52",
+      transactionId: "4500000323202608147377866981",
+    });
+  });
+
+  it("uses Alipay's counterparty row as the shop, not the product name above the amount (Tmall)", () => {
+    const small = lines([[81, "钻技情侣礼物随行咖啡杯外出携带陶瓷内胆全自动电"], [78, "动搅拌杯水杯"], [88, "-128.00"], [93, "支付时间           2026-09-13 13:32:28"], [90, "对方账户      钻技**店"]]);
+    const large = lines([[90, "钻技情侣礼物随行咖啡杯外出携带陶瓷内胆全自动电"], [90, "动搅拌杯水杯"], [92, "-128.00"], [91, "支付时间          2026-09-13 13:32:28"], [76, "对方账户      HIE"]]);
+    expect(combineReadings([small, large])).toEqual({ amountCents: 12800, merchant: "钻技**店", spentOn: "2026-09-13", paidAt: "13:32" });
+  });
+
+  it("prefers the full company name over a two-letter brand (OK convenience store)", () => {
+    const reading = lines([[88, "OK"], [90, "-14.13"], [92, "支付时间     2026年8月23日 09:04:32"], [91, "商户全称 OK便利店(澳门)有限公司"]]);
+    expect(combineReadings([reading])).toMatchObject({ amountCents: 1413, merchant: "OK便利店(澳门)有限公司" });
+  });
+
+  it("lets a much more confident reading settle a disagreement", () => {
+    const a = lines([[95, "-31.20"], [95, "支付时间 2026年9月24日 21:47:10"]]);
+    const b = lines([[95, "-31.20"], [81, "支付时间 2026年9月21日 21:47:10"]]);
+    expect(combineReadings([a, b]).spentOn).toBe("2026-09-24");
+  });
+});
+

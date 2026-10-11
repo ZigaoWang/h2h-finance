@@ -1,8 +1,16 @@
 import type { OcrResult } from "@/lib/db/schema";
 
-// Pulls amount, merchant and date out of OCR text from WeChat Pay, Alipay and
-// shopping-app screenshots. Every field is optional: a wrong guess is worse than
-// an empty field, so anything uncertain is left for the member to fill in.
+// Pulls amount, merchant, date and transaction number out of OCR text from WeChat Pay,
+// Alipay and shopping-app screenshots. Every field is optional: a wrong guess is worse
+// than an empty field, so anything uncertain is left for the member to fill in.
+
+/** A line of OCR output with Tesseract's confidence in it, 0–100. */
+export type OcrLine = { text: string; confidence: number };
+
+// Lines read with less confidence than this are too likely to be garbled to fill a field.
+const MIN_CONFIDENCE = 80;
+// When two readings disagree, the more confident one wins only by a clear margin.
+const DECISIVE_MARGIN = 8;
 
 const CJK = "\\u3400-\\u9fff\\uff00-\\uffef\\u3000-\\u303f";
 
@@ -27,8 +35,8 @@ const AMOUNT_LABELS = [
 
 const DATE = /(20\d{2})\s*[年\-/.]\s*(\d{1,2})\s*[月\-/.]\s*(\d{1,2})/;
 const DATE_LABELS = /(支付时间|付款时间|交易时间|创建时间|下单时间|成交时间|转账时间|Transaction Time|Payment Time|Time)/i;
-
 const TIME = /(?:^|\D)([01]?\d|2[0-3])[:.：](\d{2})(?:[:.：]\d{2})?(?!\d)/;
+
 // The platform's own number first (WeChat 交易单号, Alipay 交易号: always 28 digits),
 // then a shop's order number. A number with a missing digit is worse than none.
 const TRANSACTION_LABELS: [RegExp, RegExp][] = [
@@ -36,65 +44,77 @@ const TRANSACTION_LABELS: [RegExp, RegExp][] = [
   [/^(订单号|订单编号|Order (No|ID|Number)\.?)\s*:?\s*/i, /^\d{16,32}$/],
 ];
 
-const MERCHANT_LABELS = /^(商户全称|商户名称|收款方全称|收款方|收款人|商家|店铺名称|店铺|Merchant Name|Merchant|Payee)\s*:?\s*/i;
+// Who was paid, best source first. Alipay's counterparty row is the actual shop (its headline
+// is often the product), then the name above the amount, then the company's legal name.
+const COUNTERPARTY_LABELS = /^(对方账户|收款方(?!全称)|收款人|店铺名称|店铺|Payee|Merchant(?! Name))\s*:?\s*/i;
+const LEGAL_NAME_LABELS = /^(商户全称|商户名称|收款方全称|Merchant Name)\s*:?\s*/i;
 // Lines near the amount that are statuses or UI chrome, never a merchant.
 const NOT_MERCHANT =
-  /(支付成功|交易成功|付款成功|当前状态|账单详情|全部账单|对此订单有疑问|Payment Successful|Transaction|Details|Successful|^\d|^[-+¥￥])/i;
+  /(支付成功|交易成功|付款成功|当前状态|账单详情|全部账单|余额明细|对此订单有疑问|Payment Successful|Transaction|Details|Successful|^\d|^[-+¥￥])/i;
+
+type Candidate<T> = { value: T; confidence: number };
+type Field<T> = Candidate<T> | undefined;
+
+type Reading = {
+  amount: Field<number>;
+  headline: boolean;
+  counterparty: Field<string>;
+  headlineName: Field<string>;
+  legalName: Field<string>;
+  spentOn: Field<string>;
+  paidAt: Field<string>;
+  transactionId: Field<string>;
+};
 
 function toCents(whole: string, fraction: string): number | undefined {
   const cents = Number(whole.replace(/,/g, "")) * 100 + Number(fraction);
   return Number.isSafeInteger(cents) && cents > 0 && cents < 100_000_000 ? cents : undefined;
 }
 
-type FoundAmount = { cents: number; headlineLine?: number };
-
-function findAmount(lines: string[]): FoundAmount | undefined {
+function findAmount(lines: OcrLine[]): { field: Candidate<number>; headlineLine?: number } | undefined {
   for (let i = 0; i < lines.length; i++) {
-    const match = lines[i].match(HEADLINE_AMOUNT);
-    if (match) {
-      const cents = toCents(match[1], match[2]);
-      if (cents) return { cents, headlineLine: i };
-    }
+    const match = lines[i].text.match(HEADLINE_AMOUNT);
+    const cents = match && toCents(match[1], match[2]);
+    if (cents) return { field: { value: cents, confidence: lines[i].confidence }, headlineLine: i };
   }
   for (const label of AMOUNT_LABELS) {
     for (let i = 0; i < lines.length; i++) {
-      if (!label.test(lines[i])) continue;
+      if (!label.test(lines[i].text)) continue;
       // The value is usually on the same line, otherwise on the next one.
-      for (const candidate of [lines[i].replace(label, " "), lines[i + 1] ?? ""]) {
-        const match = candidate.match(AMOUNT);
+      for (const line of [{ ...lines[i], text: lines[i].text.replace(label, " ") }, lines[i + 1]]) {
+        const match = line?.text.match(AMOUNT);
         const cents = match && toCents(match[1], match[2]);
-        if (cents) return { cents };
+        if (cents) return { field: { value: cents, confidence: line.confidence } };
       }
     }
   }
   return undefined;
 }
 
-function findDate(lines: string[]): string | undefined {
-  const labelled = lines.find((line) => DATE_LABELS.test(line) && DATE.test(line));
-  const line = labelled ?? lines.find((l) => DATE.test(l));
-  const match = line?.match(DATE);
-  if (!match) return undefined;
+function findDate(lines: OcrLine[]): { field: Candidate<string>; line: OcrLine } | undefined {
+  const line = lines.find((l) => DATE_LABELS.test(l.text) && DATE.test(l.text)) ?? lines.find((l) => DATE.test(l.text));
+  const match = line?.text.match(DATE);
+  if (!line || !match) return undefined;
   const [, y, m, d] = match;
   const iso = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
   const date = new Date(`${iso}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(iso) ? iso : undefined;
+  if (Number.isNaN(date.getTime()) || !date.toISOString().startsWith(iso)) return undefined;
+  return { field: { value: iso, confidence: line.confidence }, line };
 }
 
-function findTime(lines: string[]): string | undefined {
-  const line = lines.find((l) => DATE_LABELS.test(l) && DATE.test(l));
-  const match = line?.replace(DATE, " ").match(TIME);
-  return match ? `${match[1].padStart(2, "0")}:${match[2]}` : undefined;
+function findTime(dateLine: OcrLine): Field<string> {
+  const match = dateLine.text.replace(DATE, " ").match(TIME);
+  return match ? { value: `${match[1].padStart(2, "0")}:${match[2]}`, confidence: dateLine.confidence } : undefined;
 }
 
-function findTransactionId(lines: string[]): string | undefined {
+function findTransactionId(lines: OcrLine[]): Field<string> {
   for (const [label, valid] of TRANSACTION_LABELS) {
     for (let i = 0; i < lines.length; i++) {
-      if (!label.test(lines[i])) continue;
-      let digits = lines[i].replace(label, "").replace(/\s+/g, "");
+      if (!label.test(lines[i].text)) continue;
+      let digits = lines[i].text.replace(label, "").replace(/\s+/g, "");
       // Long numbers wrap onto the next line in Alipay.
-      if (/^\d{1,6}$/.test(lines[i + 1] ?? "")) digits += lines[i + 1];
-      if (valid.test(digits)) return digits;
+      if (/^\d{1,6}$/.test(lines[i + 1]?.text ?? "")) digits += lines[i + 1].text;
+      if (valid.test(digits)) return { value: digits, confidence: lines[i].confidence };
     }
   }
   return undefined;
@@ -107,70 +127,94 @@ function cleanMerchant(value: string): string | undefined {
   return cleaned;
 }
 
-function findMerchant(lines: string[], headlineLine?: number): string | undefined {
-  // Payment apps print the short shop name right above the headline amount.
-  if (headlineLine !== undefined) {
-    for (let i = headlineLine - 1; i >= Math.max(0, headlineLine - 2); i--) {
-      const merchant = cleanMerchant(lines[i]);
-      if (merchant) return merchant;
-    }
-  }
+function findLabelled(lines: OcrLine[], label: RegExp): Field<string> {
   for (let i = 0; i < lines.length; i++) {
-    if (!MERCHANT_LABELS.test(lines[i])) continue;
-    const merchant = cleanMerchant(lines[i].replace(MERCHANT_LABELS, "")) ?? cleanMerchant(lines[i + 1] ?? "");
-    if (merchant) return merchant;
+    if (!label.test(lines[i].text)) continue;
+    for (const line of [{ ...lines[i], text: lines[i].text.replace(label, "") }, lines[i + 1]]) {
+      const value = line && cleanMerchant(line.text);
+      if (value) return { value, confidence: line.confidence };
+    }
   }
   return undefined;
 }
 
-type Reading = OcrResult & { headline: boolean };
+/** Payment apps print the short shop name right above the headline amount. */
+function findHeadlineName(lines: OcrLine[], headlineLine: number): Field<string> {
+  for (let i = headlineLine - 1; i >= Math.max(0, headlineLine - 2); i--) {
+    const value = cleanMerchant(lines[i].text);
+    if (value) return { value, confidence: lines[i].confidence };
+  }
+  return undefined;
+}
 
-function analyse(text: string): Reading {
-  const lines = text.split(/\r?\n/).map(normalizeLine).filter(Boolean);
+function analyse(raw: OcrLine[]): Reading {
+  const lines = raw.map((l) => ({ ...l, text: normalizeLine(l.text) })).filter((l) => l.text);
   const amount = findAmount(lines);
-  const reading: Reading = { headline: amount?.headlineLine !== undefined };
-  if (amount) reading.amountCents = amount.cents;
-  const merchant = findMerchant(lines, amount?.headlineLine);
-  if (merchant) reading.merchant = merchant;
-  const spentOn = findDate(lines);
-  if (spentOn) reading.spentOn = spentOn;
-  // A time only means something next to a date we trust.
-  const paidAt = spentOn ? findTime(lines) : undefined;
-  if (paidAt) reading.paidAt = paidAt;
-  const transactionId = findTransactionId(lines);
-  if (transactionId) reading.transactionId = transactionId;
-  return reading;
+  const date = findDate(lines);
+  return {
+    amount: amount?.field,
+    headline: amount?.headlineLine !== undefined,
+    counterparty: findLabelled(lines, COUNTERPARTY_LABELS),
+    headlineName: amount?.headlineLine !== undefined ? findHeadlineName(lines, amount.headlineLine) : undefined,
+    legalName: findLabelled(lines, LEGAL_NAME_LABELS),
+    spentOn: date?.field,
+    // A time only means something next to a date we trust.
+    paidAt: date ? findTime(date.line) : undefined,
+    transactionId: findTransactionId(lines),
+  };
 }
 
-export function parseReceiptText(text: string): OcrResult {
-  return combineReadings([text]);
+/**
+ * One value from several readings. Unsure reads are ignored; if the confident ones
+ * disagree, the most confident wins only by a clear margin, otherwise nothing does.
+ */
+function pick<T>(fields: Field<T>[]): T | undefined {
+  const sure = fields
+    .filter((f): f is Candidate<T> => !!f && f.confidence >= MIN_CONFIDENCE)
+    .sort((a, b) => b.confidence - a.confidence);
+  if (!sure.length) return undefined;
+  const [best, ...rest] = sure;
+  const rival = rest.find((f) => f.value !== best.value);
+  return !rival || best.confidence - rival.confidence >= DECISIVE_MARGIN ? best.value : undefined;
 }
 
-/** One value from several readings: the first one found, unless two readings disagree. */
-function agreed<T>(values: (T | undefined)[]): T | undefined {
-  const found = values.filter((v): v is T => v !== undefined);
-  return found.every((v) => v === found[0]) ? found[0] : undefined;
+/** A two- or three-letter brand ("OK") says less than the company's full name. */
+function informative(name: string | undefined) {
+  return name && !/^[A-Za-z]{1,3}$/.test(name) ? name : undefined;
 }
 
 /**
  * Combines readings of the same image at different scales. A reading that found the big
- * headline amount is trusted for the amount and the shop name printed above it; dates must
- * agree wherever they were read. Any conflict leaves the field for the member to fill in.
+ * headline amount is trusted for the amount; dates and numbers must agree or clearly win.
  */
-export function combineReadings(texts: string[]): OcrResult {
-  const readings = texts.map(analyse);
-  const headline = readings.filter((r) => r.headline);
-  const trusted = headline.length ? headline : readings;
+export function combineReadings(readings: OcrLine[][]): OcrResult {
+  const parsed = readings.map(analyse);
+  const headline = parsed.filter((r) => r.headline);
+  const trusted = headline.length ? headline : parsed;
+
   const result: OcrResult = {};
-  const amountCents = agreed(trusted.map((r) => r.amountCents));
+  const amountCents = pick(trusted.map((r) => r.amount));
   if (amountCents) result.amountCents = amountCents;
-  const merchant = agreed(trusted.map((r) => r.merchant)) ?? (headline.length ? undefined : agreed(readings.map((r) => r.merchant)));
+  const merchant =
+    pick(parsed.map((r) => r.counterparty)) ??
+    informative(pick(parsed.map((r) => r.headlineName))) ??
+    pick(parsed.map((r) => r.legalName)) ??
+    pick(parsed.map((r) => r.headlineName));
   if (merchant) result.merchant = merchant;
-  const spentOn = agreed(readings.map((r) => r.spentOn));
+  const spentOn = pick(parsed.map((r) => r.spentOn));
   if (spentOn) result.spentOn = spentOn;
-  const paidAt = agreed(readings.map((r) => r.paidAt));
+  const paidAt = spentOn ? pick(parsed.filter((r) => r.spentOn?.value === spentOn).map((r) => r.paidAt)) : undefined;
   if (paidAt) result.paidAt = paidAt;
-  const transactionId = agreed(readings.map((r) => r.transactionId));
+  const transactionId = pick(parsed.map((r) => r.transactionId));
   if (transactionId) result.transactionId = transactionId;
   return result;
+}
+
+/** Plain text as if every line were read with full confidence. For tests and simple callers. */
+export function textToLines(text: string): OcrLine[] {
+  return text.split(/\r?\n/).map((line) => ({ text: line, confidence: 100 }));
+}
+
+export function parseReceiptText(text: string): OcrResult {
+  return combineReadings([textToLines(text)]);
 }
