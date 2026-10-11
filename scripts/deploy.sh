@@ -51,7 +51,8 @@ say "Building $commit"
 mkdir -p "$RELEASES"
 git clone --quiet --depth 1 --branch "$BRANCH" "$REPO" "$release"
 cd "$release"
-npm ci --no-audit --no-fund --loglevel=error
+# The build tools are dev dependencies, which NODE_ENV=production from .env would otherwise skip.
+npm ci --include=dev --no-audit --no-fund --loglevel=error
 npm run build >/dev/null
 cp -r .next/static .next/standalone/.next/
 cp -r public .next/standalone/
