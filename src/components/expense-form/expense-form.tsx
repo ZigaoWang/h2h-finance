@@ -82,7 +82,6 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
   const [eventId, setEventId] = useState<string>(edit?.eventId ? String(edit.eventId) : "");
   const [description, setDescription] = useState(edit?.description ?? "");
   const [note, setNote] = useState(edit?.note ?? "");
-  const [showNote, setShowNote] = useState(!!edit?.note);
   const [showErrors, setShowErrors] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -224,7 +223,7 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
       requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-invalid=true]")?.focus());
       return;
     }
-    const details = { categoryId: categoryId!, eventId: eventId ? Number(eventId) : null, description, note: showNote ? note : "" };
+    const details = { categoryId: categoryId!, eventId: eventId ? Number(eventId) : null, description, note };
     const toInput = (i: Item) => ({ fileIds: i.photos.map((p) => p.fileId!), amount: i.amount, merchant: i.merchant, spentOn: i.spentOn });
     if (edit) {
       const [item] = items;
@@ -323,16 +322,9 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
           />
         </Field>
 
-        {showNote ? (
-          <Field label={t("note")} htmlFor={`${formId}-note`} hint={t("noteHint")} optional={t("optional")}>
-            <Textarea id={`${formId}-note`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} rows={3} autoFocus={!edit?.note} />
-          </Field>
-        ) : (
-          <button type="button" onClick={() => setShowNote(true)} className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-ink-2 hover:text-ink">
-            <Plus className="size-4" aria-hidden />
-            {t("addNote")}
-          </button>
-        )}
+        <Field label={t("note")} htmlFor={`${formId}-note`} hint={t("noteHint")} optional={t("optional")}>
+          <Textarea id={`${formId}-note`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} rows={2} />
+        </Field>
       </section>
 
       {action.error && <Alert>{action.error}</Alert>}

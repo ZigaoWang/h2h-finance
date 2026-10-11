@@ -40,6 +40,12 @@ export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: 
             {expense.status === "voided" && <StatusBadge status="voided" className="mt-1.5" />}
           </div>
           <h2 className="mt-2 text-[15px] font-medium">{expense.description}</h2>
+          {expense.note && (
+            <div className="mt-4 rounded-md bg-subtle px-3.5 py-3 text-sm">
+              <p className="text-xs font-medium text-muted">{t("note")}</p>
+              <p className="mt-1 whitespace-pre-line text-ink-2">{expense.note}</p>
+            </div>
+          )}
 
           <dl className="mt-5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2.5 border-t border-line pt-4 text-sm">
             <Row label={t("merchant")}>{expense.merchant}</Row>
@@ -70,7 +76,6 @@ export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: 
                 <When date={expense.voidedAt} />
               </Row>
             )}
-            {expense.note && <Row label={t("note")}><span className="whitespace-pre-line">{expense.note}</span></Row>}
           </dl>
 
           <div className="mt-5 flex flex-col gap-3 empty:hidden">
