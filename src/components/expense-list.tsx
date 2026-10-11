@@ -23,7 +23,7 @@ export type ListItem = {
 };
 
 /**
- * Expenses as a table on wider screens and as compact rows on phones.
+ * Expenses as a table on wider screens and as compact rows on phones. Deleted ones are marked and struck through.
  * Rows link to the detail page when `href` returns a path.
  */
 export function ExpenseList({
@@ -57,7 +57,6 @@ export function ExpenseList({
             <th className="w-[15%] py-2.5 pl-3 font-medium">{t("event")}</th>
             {member && <th className="w-[12%] py-2.5 pl-3 font-medium">{t("member")}</th>}
             <th className="w-[112px] py-2.5 pr-4 pl-3 text-right font-medium">{t("amount")}</th>
-            {showStatus && <th className="w-[112px] py-2.5 pr-4 font-medium">{t("status")}</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
@@ -74,13 +73,17 @@ export function ExpenseList({
                   ) : (
                     <span className="block truncate font-medium">{item.description}</span>
                   )}
-                  {item.merchant && <span className="block truncate text-xs text-muted">{item.merchant}</span>}
+                  {(item.merchant || item.status === "voided") && (
+                    <span className="block truncate text-xs text-muted">
+                      {item.status === "voided" && showStatus && <StatusBadge status="voided" className="mr-2 text-xs" />}
+                      {item.merchant}
+                    </span>
+                  )}
                 </td>
                 <td className="truncate py-3 pl-3 text-ink-2">{category(item)}</td>
                 <td className="truncate py-3 pl-3 text-ink-2">{event(item) ?? <span className="text-faint">—</span>}</td>
                 {member && <td className="truncate py-3 pl-3 text-ink-2">{item.userName}</td>}
                 <td className="py-3 pr-4 pl-3 text-right">{amount(item)}</td>
-                {showStatus && <td className="py-3 pr-4">{item.status && <StatusBadge status={item.status} />}</td>}
               </tr>
             );
           })}
@@ -99,7 +102,7 @@ export function ExpenseList({
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 {amount(item)}
-                {showStatus && item.status && <StatusBadge status={item.status} className="text-xs" />}
+                {showStatus && item.status === "voided" && <StatusBadge status="voided" className="text-xs" />}
               </div>
             </>
           );

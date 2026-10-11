@@ -28,17 +28,17 @@ export function BudgetOverview({ summary, publicView }: { summary: YearSummary; 
     hint: summary.lastMonthCents || summary.thisMonthCents ? t("vsLastMonth", { amount: formatMoney(summary.lastMonthCents), sign: monthDelta > 0 ? "up" : monthDelta < 0 ? "down" : "same" }) : undefined,
   };
   const average: Figure = { label: t("average"), value: formatMoney(summary.averageCents), hint: t("perExpense") };
-  const count: Figure = { label: t("expenseCount"), value: String(spent.count), hint: t("approvedOnly") };
+  const count: Figure = { label: t("expenseCount"), value: String(spent.count) };
   const remaining: Figure = { label: t("remaining"), value: formatMoney(remainingCents), tone: over ? "danger" : undefined };
 
   const figures: Figure[] = publicView
     ? [{ label: t("budget"), value: formatMoney(budgetCents) }, remaining, count, average, { label: t("largest"), value: formatMoney(summary.largestCents) }, thisMonth]
     : [
         remaining,
-        { label: t("pendingReview"), value: formatMoney(summary.pending.cents), hint: t("items", { count: summary.pending.count }) },
         { label: t("owed"), value: formatMoney(summary.owed.cents), hint: t("items", { count: summary.owed.count }) },
         count,
         average,
+        { label: t("largest"), value: formatMoney(summary.largestCents) },
         thisMonth,
       ];
 

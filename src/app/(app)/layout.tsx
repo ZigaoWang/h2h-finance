@@ -6,13 +6,13 @@ import { MobileNav, SidebarNav } from "@/components/shell/nav";
 import { Logo } from "@/components/logo";
 import { ButtonLink } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/dal";
-import { countAwaitingPayback, countPendingReview } from "@/lib/expenses/queries";
+import { countAwaitingPayback } from "@/lib/expenses/queries";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const t = await getTranslations();
   const isAdmin = user.role === "admin";
-  const counts = isAdmin ? { review: countPendingReview(), reimburse: countAwaitingPayback() } : { review: 0, reimburse: 0 };
+  const counts = { reimburse: isAdmin ? countAwaitingPayback() : 0 };
   const logo = <Logo name={t("brand.org")} product={t("brand.product")} />;
 
   return (

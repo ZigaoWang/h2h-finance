@@ -7,7 +7,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { listMembers } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth/dal";
 import { cn } from "@/lib/cn";
-import { EXPENSE_STATUSES, type ExpenseStatus } from "@/lib/db/schema";
 import { listAllExpenses } from "@/lib/expenses/queries";
 import { formatMoney } from "@/lib/money";
 import { ExpenseFilters } from "./filters";
@@ -17,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("allExpenses") };
 }
 
-const TABS = ["all", "pending", "approved", "reimbursed", "rejected", "voided"] as const;
+const TABS = ["all", "voided"] as const;
 
 /** Every expense, for admins to find, open, correct or delete. */
 export default async function AllExpensesPage({ searchParams }: PageProps<"/all-expenses">) {
@@ -25,12 +24,12 @@ export default async function AllExpensesPage({ searchParams }: PageProps<"/all-
   const t = await getTranslations();
   const params = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-  const status = EXPENSE_STATUSES.includes(one(params.status) as ExpenseStatus) ? (one(params.status) as ExpenseStatus) : undefined;
+  const status = one(params.status) === "voided" ? ("voided" as const) : undefined;
   const userId = Number(one(params.member)) || undefined;
   const query = one(params.q) ?? "";
 
   const items = listAllExpenses({ status, userId, query });
-  const total = items.filter((e) => e.status === "approved" || e.status === "reimbursed").reduce((sum, e) => sum + e.amountCents, 0);
+  const total = items.filter((e) => e.status !== "voided").reduce((sum, e) => sum + e.amountCents, 0);
   const members = listMembers().map((m) => ({ id: m.id, name: m.name }));
   const link = (next: Record<string, string | undefined>) => {
     const search = new URLSearchParams();

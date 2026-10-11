@@ -7,7 +7,7 @@ import { EmptyState, Panel } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireUser } from "@/lib/auth/dal";
 import { cn } from "@/lib/cn";
-import { EXPENSE_STATUSES, type ExpenseStatus } from "@/lib/db/schema";
+import { today } from "@/lib/dates";
 import { listOwnExpenses } from "@/lib/expenses/queries";
 import { formatMoney } from "@/lib/money";
 
@@ -16,58 +16,58 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("expenses") };
 }
 
-const FILTERS = ["all", "pending", "approved", "reimbursed", "rejected"] as const;
-
 export default async function MyExpensesPage({ searchParams }: PageProps<"/expenses">) {
   const user = await requireUser();
-  const t = await getTranslations("expenses");
-  const ts = await getTranslations("status");
-  const param = (await searchParams).status;
-  const status = EXPENSE_STATUSES.includes(param as ExpenseStatus) ? (param as ExpenseStatus) : undefined;
+  const t = await getTranslations();
+  const showDeleted = (await searchParams).status === "voided";
 
   const all = listOwnExpenses(user.id);
-  const shown = status ? all.filter((e) => e.status === status) : all;
-  const sumOf = (s: ExpenseStatus) => all.filter((e) => e.status === s).reduce((n, e) => n + e.amountCents, 0);
-  const countOf = (s: ExpenseStatus) => all.filter((e) => e.status === s).length;
+  const recorded = all.filter((e) => e.status !== "voided");
+  const deleted = all.length - recorded.length;
+  const shown = showDeleted ? all.filter((e) => e.status === "voided") : recorded;
+  const month = today().slice(0, 7);
+  const sum = (list: typeof all) => list.reduce((n, e) => n + e.amountCents, 0);
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("description")} />
+      <PageHeader title={t("expenses.title")} description={t("expenses.description")} />
 
       <Panel className="mb-10 grid grid-cols-3 divide-x divide-line">
-        <Figure label={t("awaitingReview")} value={formatMoney(sumOf("pending"))} />
-        <Figure label={t("awaitingPayback")} value={formatMoney(sumOf("approved"))} />
-        <Figure label={t("paidBack")} value={formatMoney(sumOf("reimbursed"))} />
+        <Figure label={t("expenses.total")} value={formatMoney(sum(recorded))} />
+        <Figure label={t("dashboard.thisMonth")} value={formatMoney(sum(recorded.filter((e) => e.spentOn.startsWith(month))))} />
+        <Figure label={t("dashboard.expenseCount")} value={String(recorded.length)} />
       </Panel>
 
-      <nav className="mb-3 flex gap-1 overflow-x-auto" aria-label={t("filter")}>
-        {FILTERS.map((f) => {
-          const active = (f === "all" && !status) || f === status;
-          return (
+      {deleted > 0 && (
+        <nav className="mb-3 flex gap-1" aria-label={t("expenses.filter")}>
+          {[
+            { href: "/expenses", label: t("expenses.all"), active: !showDeleted, count: recorded.length },
+            { href: "/expenses?status=voided", label: t("status.voided"), active: showDeleted, count: deleted },
+          ].map((tab) => (
             <Link
-              key={f}
-              href={f === "all" ? "/expenses" : `/expenses?status=${f}`}
-              aria-current={active ? "page" : undefined}
+              key={tab.href}
+              href={tab.href}
+              aria-current={tab.active ? "page" : undefined}
               className={cn(
-                "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-3 text-[13px] transition-colors",
-                active ? "bg-ink font-medium text-white" : "text-ink-2 hover:bg-subtle",
+                "inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[13px] transition-colors",
+                tab.active ? "bg-ink font-medium text-white" : "text-ink-2 hover:bg-subtle",
               )}
             >
-              {f === "all" ? t("all") : ts(f)}
-              <span className={cn("num text-xs", active ? "text-white/60" : "text-faint")}>{f === "all" ? all.length : countOf(f)}</span>
+              {tab.label}
+              <span className={cn("num text-xs", tab.active ? "text-white/60" : "text-faint")}>{tab.count}</span>
             </Link>
-          );
-        })}
-      </nav>
+          ))}
+        </nav>
+      )}
 
       <Panel>
         {shown.length ? (
           <ExpenseList items={shown} href={(item) => `/expenses/${item.id}`} showMember={false} />
         ) : (
           <EmptyState
-            title={status ? t("emptyFiltered") : t("empty")}
-            description={status ? undefined : t("emptyHint")}
-            action={!status && <ButtonLink href="/expenses/new">{t("new")}</ButtonLink>}
+            title={t("expenses.empty")}
+            description={t("expenses.emptyHint")}
+            action={<ButtonLink href="/expenses/new">{t("expenses.new")}</ButtonLink>}
           />
         )}
       </Panel>

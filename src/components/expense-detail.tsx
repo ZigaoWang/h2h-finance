@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { OwnerActions } from "@/components/owner-actions";
-import { DeleteAction, RestoreAction, ReviewActions } from "@/components/review-actions";
+import { DeleteAction, RestoreAction } from "@/components/expense-actions";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
@@ -15,7 +14,7 @@ import { formatMoney } from "@/lib/money";
 import { screenshotMismatches } from "@/lib/expenses/checks";
 
 /** One expense with its proof. Used on the detail page and in the review queue. */
-export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail; viewer: SessionUser; inQueue?: boolean }) {
+export function ExpenseDetailView({ detail, viewer }: { detail: Detail; viewer: SessionUser }) {
   const t = useTranslations("expense");
   const locale = useLocale();
   const { expense, files, flags, reimbursement, proofFileId, history } = detail;
@@ -59,12 +58,6 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
               {expense.userName}
               <When date={expense.createdAt} />
             </Row>
-            {expense.reviewerName && expense.reviewedAt && (
-              <Row label={expense.status === "rejected" ? t("rejectedBy") : t("approvedBy")}>
-                {expense.reviewerName}
-                <When date={expense.reviewedAt} />
-              </Row>
-            )}
             {reimbursement && (
               <Row label={t("paidBackBy")}>
                 {reimbursement.payerName}
@@ -95,9 +88,6 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
           </dl>
 
           <div className="mt-5 flex flex-col gap-3 empty:hidden">
-            {expense.status === "rejected" && (
-              <Alert title={t("rejectedTitle")}>{expense.rejectionReason}</Alert>
-            )}
             {expense.status === "voided" && <Alert tone="info" title={t("voidedTitle")}>{expense.voidReason}</Alert>}
             {(isAdmin || isOwner) && flags.length > 0 && <DuplicateAlert flags={flags} isAdmin={isAdmin} />}
             {(isAdmin || isOwner) && mismatches.length > 0 && expense.status !== "voided" && (
@@ -109,21 +99,14 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
                 </ul>
               </Alert>
             )}
-            {expense.status === "approved" && <p className="text-sm text-muted">{t("awaitingPayback")}</p>}
           </div>
 
-          {isAdmin && expense.status === "pending" && <ReviewActions id={expense.id} className="mt-5" />}
-          {isOwner && (expense.status === "pending" || expense.status === "rejected") && !inQueue && (
-            <div className="mt-5 border-t border-line pt-4">
-              <OwnerActions id={expense.id} status={expense.status} />
-            </div>
-          )}
-          {isAdmin && expense.status !== "voided" && !(isOwner && (expense.status === "pending" || expense.status === "rejected")) && (
+          {(isAdmin || isOwner) && expense.status !== "voided" && (
             <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3">
               <ButtonLink href={`/expenses/${expense.id}/edit`} variant="secondary" size="sm">
                 {t("edit")}
               </ButtonLink>
-              {expense.status !== "reimbursed" && <DeleteAction id={expense.id} />}
+              {isAdmin && expense.status !== "reimbursed" && <DeleteAction id={expense.id} />}
             </div>
           )}
           {isAdmin && expense.status === "voided" && (
@@ -133,7 +116,7 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
           )}
         </Panel>
 
-        {!inQueue && <History history={history} reimbursement={reimbursement} />}
+        <History history={history} reimbursement={reimbursement} />
       </div>
 
       <div className="flex flex-col gap-3 lg:order-1">

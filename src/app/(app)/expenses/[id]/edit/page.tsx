@@ -22,18 +22,17 @@ export default async function EditExpensePage({ params }: PageProps<"/expenses/[
   const id = Number((await params).id);
   if (!Number.isSafeInteger(id) || id <= 0) notFound();
   const { expense, files } = getExpenseDetail(id, viewer);
-  // Members edit their own expenses until they're reviewed; admins can correct any that isn't deleted.
-  const ownEditable = expense.userId === viewer.id && (expense.status === "pending" || expense.status === "rejected");
-  const asAdmin = !ownEditable && viewer.role === "admin" && expense.status !== "voided";
-  if (!ownEditable && !asAdmin) notFound();
+  // Members correct their own expenses; admins anyone's. Deleted ones are restored first.
+  if ((expense.userId !== viewer.id && viewer.role !== "admin") || expense.status === "voided") notFound();
+  const someoneElses = expense.userId !== viewer.id;
 
-  // Members pick from current options. An admin correcting an old expense may keep its archived ones.
+  // New choices come from current options, but an expense may keep the archived ones it already has.
   const categories = activeCategories().map(({ id, nameEn, nameZh }) => ({ id, nameEn, nameZh }));
   const events = activeEvents().map(({ id, nameEn, nameZh }) => ({ id, nameEn, nameZh }));
-  if (asAdmin && !categories.some((c) => c.id === expense.categoryId)) {
+  if (!categories.some((c) => c.id === expense.categoryId)) {
     categories.push({ id: expense.categoryId, nameEn: expense.categoryEn, nameZh: expense.categoryZh });
   }
-  if (asAdmin && expense.eventId && !events.some((e) => e.id === expense.eventId)) {
+  if (expense.eventId && !events.some((e) => e.id === expense.eventId)) {
     events.push({ id: expense.eventId, nameEn: expense.eventEn ?? "", nameZh: expense.eventZh ?? "" });
   }
 
@@ -44,14 +43,9 @@ export default async function EditExpensePage({ params }: PageProps<"/expenses/[
         {t("title", { id })}
       </Link>
       <h1 className="mb-6 text-[22px] font-semibold tracking-tight">{t("editTitle")}</h1>
-      {asAdmin && (
+      {someoneElses && (
         <Alert tone="info" className="mb-6">
           {t("adminEditNotice", { name: expense.userName })}
-        </Alert>
-      )}
-      {!asAdmin && expense.status === "rejected" && (
-        <Alert title={t("rejectedTitle")} className="mb-6">
-          {expense.rejectionReason}
         </Alert>
       )}
       <ExpenseForm
@@ -61,11 +55,9 @@ export default async function EditExpensePage({ params }: PageProps<"/expenses/[
         today={today()}
         edit={{
           id,
-          asAdmin,
-          resubmit: !asAdmin && expense.status === "rejected",
           item: { amountCents: expense.amountCents, merchant: expense.merchant, spentOn: expense.spentOn, fileIds: files.map((f) => f.id) },
-          categoryId: categories.some((c) => c.id === expense.categoryId) ? expense.categoryId : null,
-          eventId: events.some((e) => e.id === expense.eventId) ? expense.eventId : null,
+          categoryId: expense.categoryId,
+          eventId: expense.eventId,
           description: expense.description,
           note: expense.note,
         }}

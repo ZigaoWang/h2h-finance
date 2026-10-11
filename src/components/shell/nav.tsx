@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardCheck, HandCoins, LayoutDashboard, List, Plus, ReceiptText, Settings } from "lucide-react";
+import { HandCoins, LayoutDashboard, List, Plus, ReceiptText, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
 
-type Key = "dashboard" | "expenses" | "review" | "reimburse" | "allExpenses" | "admin";
+type Key = "dashboard" | "expenses" | "reimburse" | "allExpenses" | "admin";
 type Item = { href: string; key: Key; icon: typeof LayoutDashboard };
 
 const MEMBER: Item[] = [
@@ -15,7 +15,6 @@ const MEMBER: Item[] = [
 ];
 
 const ADMIN: Item[] = [
-  { href: "/review", key: "review", icon: ClipboardCheck },
   { href: "/reimburse", key: "reimburse", icon: HandCoins },
   { href: "/all-expenses", key: "allExpenses", icon: List },
   { href: "/admin", key: "admin", icon: Settings },
@@ -50,7 +49,7 @@ function SidebarLink({ item, pathname, count }: { item: Item; pathname: string; 
   );
 }
 
-type Counts = { review: number; reimburse: number };
+type Counts = { reimburse: number };
 
 export function SidebarNav({ isAdmin, counts }: { isAdmin: boolean; counts: Counts }) {
   const t = useTranslations("nav");
@@ -70,7 +69,7 @@ export function SidebarNav({ isAdmin, counts }: { isAdmin: boolean; counts: Coun
               key={item.href}
               item={item}
               pathname={pathname}
-              count={item.key === "review" ? counts.review : item.key === "reimburse" ? counts.reimburse : undefined}
+              count={item.key === "reimburse" ? counts.reimburse : undefined}
             />
           ))}
         </div>
@@ -84,10 +83,10 @@ export function MobileNav({ isAdmin, counts }: { isAdmin: boolean; counts: Count
   const pathname = usePathname();
   if (pathname === "/expenses/new" || /^\/expenses\/\d+\/edit$/.test(pathname)) return null;
 
-  const left = isAdmin ? [MEMBER[0], ADMIN[0]] : [MEMBER[0]];
-  const right = isAdmin ? [MEMBER[1], ADMIN[1]] : [MEMBER[1]];
+  const left = isAdmin ? [MEMBER[0], ADMIN[1]] : [MEMBER[0]];
+  const right = isAdmin ? [MEMBER[1], ADMIN[0]] : [MEMBER[1]];
   const tab = (item: Item) => {
-    const count = item.key === "review" ? counts.review : item.key === "reimburse" ? counts.reimburse : 0;
+    const count = item.key === "reimburse" ? counts.reimburse : 0;
     return (
     <Link
       key={item.href}

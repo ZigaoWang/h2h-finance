@@ -43,13 +43,11 @@ const itemSchema = z.object({
 });
 
 export const submissionSchema = detailsSchema.extend({ items: z.array(itemSchema).min(1).max(20) });
-export const updateSchema = detailsSchema.extend(itemSchema.shape);
-// Admins correct the details; the receipts themselves stay as submitted.
-export const adminUpdateSchema = detailsSchema.extend(itemSchema.omit({ fileIds: true }).shape);
+// Corrections change the details; the receipts themselves stay as submitted.
+export const updateSchema = detailsSchema.extend(itemSchema.omit({ fileIds: true }).shape);
 
 export type SubmissionInput = z.input<typeof submissionSchema>;
 export type UpdateInput = z.input<typeof updateSchema>;
-export type AdminUpdateInput = z.input<typeof adminUpdateSchema>;
 
 type Expense = typeof expenses.$inferSelect;
 type Details = Pick<Expense, "amountCents" | "merchant" | "spentOn" | "description" | "note" | "categoryId" | "eventId">;
@@ -141,6 +139,8 @@ export function submitExpenses(user: SessionUser, input: SubmissionInput): numbe
           spentOn: item.spentOn,
           description: data.description,
           note: data.note ?? null,
+          // Expenses count as soon as they're submitted; the club trusts its members.
+          status: "approved",
         })
         .returning({ id: expenses.id })
         .get();
@@ -157,67 +157,15 @@ export function submitExpenses(user: SessionUser, input: SubmissionInput): numbe
   );
 }
 
-function getOwnEditable(user: SessionUser, id: number) {
-  const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
-  if (!expense || expense.userId !== user.id) throw new AppError("not_found");
-  if (expense.status !== "pending" && expense.status !== "rejected") throw new AppError("locked");
-  return expense;
-}
-
-/** Members can fix a pending expense, or correct a rejected one and send it back for review. */
-export function updateExpense(user: SessionUser, id: number, input: UpdateInput) {
-  const expense = getOwnEditable(user, id);
-  const data = parse(updateSchema, input);
-  assertActiveOptions(data.categoryId, data.eventId);
-  assertOwnFreeFiles(user.id, data.fileIds, id);
-  const year = assertDate(data.spentOn);
-
-  const after: Details = {
-    amountCents: data.amount,
-    merchant: data.merchant,
-    spentOn: data.spentOn,
-    description: data.description,
-    note: data.note ?? null,
-    categoryId: data.categoryId,
-    eventId: data.eventId ?? null,
-  };
-
-  db.transaction((tx) => {
-    tx.update(expenses)
-      .set({
-        ...after,
-        yearId: year.id,
-        status: "pending",
-        reviewedBy: null,
-        reviewedAt: null,
-        rejectionReason: null,
-        updatedAt: new Date(),
-        updatedBy: user.id,
-      })
-      .where(eq(expenses.id, id))
-      .run();
-    // Receipts dropped from the expense become unattached and are cleaned up later.
-    tx.update(files).set({ expenseId: null }).where(eq(files.expenseId, id)).run();
-    tx.update(files).set({ expenseId: id }).where(inArray(files.id, data.fileIds)).run();
-    audit(tx, {
-      actorId: user.id,
-      action: "expense.updated",
-      entity: "expense",
-      entityId: id,
-      data: { changes: describeChanges(expense, after), resubmitted: expense.status === "rejected" },
-    });
-  });
-}
-
 /**
- * Admins can correct any expense that hasn't been deleted, including approved and paid-back
- * ones. Nothing is quiet: who changed what is recorded, and the database keeps the old version.
+ * Corrects an expense's details. Members can fix their own and admins anyone's; receipts stay
+ * as submitted. Nothing is quiet: who changed what is recorded, and the database keeps the old version.
  */
-export function adminUpdateExpense(admin: SessionUser, id: number, input: AdminUpdateInput) {
+export function updateExpense(user: SessionUser, id: number, input: UpdateInput) {
   const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
-  if (!expense) throw new AppError("not_found");
+  if (!expense || (user.role !== "admin" && expense.userId !== user.id)) throw new AppError("not_found");
   if (expense.status === "voided") throw new AppError("locked");
-  const data = parse(adminUpdateSchema, input);
+  const data = parse(updateSchema, input);
   const after: Details = {
     amountCents: data.amount,
     merchant: data.merchant,
@@ -240,61 +188,14 @@ export function adminUpdateExpense(admin: SessionUser, id: number, input: AdminU
 
   db.transaction((tx) => {
     tx.update(expenses)
-      .set({ ...after, yearId: year.id, updatedAt: new Date(), updatedBy: admin.id })
+      .set({ ...after, yearId: year.id, updatedAt: new Date(), updatedBy: user.id })
       .where(eq(expenses.id, id))
       .run();
-    audit(tx, { actorId: admin.id, action: "expense.updated", entity: "expense", entityId: id, data: { changes } });
-  });
-}
-
-/** Pending expenses can be withdrawn by their owner. Anything reviewed stays on record. */
-export function withdrawExpense(user: SessionUser, id: number) {
-  const expense = getOwnEditable(user, id);
-  if (expense.status !== "pending") throw new AppError("locked");
-  db.transaction((tx) => {
-    tx.update(files).set({ expenseId: null }).where(eq(files.expenseId, id)).run();
-    tx.delete(expenses).where(eq(expenses.id, id)).run();
-    audit(tx, {
-      actorId: user.id,
-      action: "expense.withdrawn",
-      entity: "expense",
-      entityId: id,
-      data: { amountCents: expense.amountCents, merchant: expense.merchant, spentOn: expense.spentOn },
-    });
-  });
-}
-
-function getForReview(id: number, status: "pending" | "approved") {
-  const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
-  if (!expense) throw new AppError("not_found");
-  if (expense.status !== status) throw new AppError("locked");
-  return expense;
-}
-
-export function approveExpense(admin: SessionUser, id: number) {
-  getForReview(id, "pending");
-  db.transaction((tx) => {
-    tx.update(expenses)
-      .set({ status: "approved", reviewedBy: admin.id, reviewedAt: new Date() })
-      .where(and(eq(expenses.id, id), eq(expenses.status, "pending")))
-      .run();
-    audit(tx, { actorId: admin.id, action: "expense.approved", entity: "expense", entityId: id });
+    audit(tx, { actorId: user.id, action: "expense.updated", entity: "expense", entityId: id, data: { changes } });
   });
 }
 
 const reasonSchema = text(500);
-
-export function rejectExpense(admin: SessionUser, id: number, reason: string) {
-  const why = parse(reasonSchema, reason);
-  getForReview(id, "pending");
-  db.transaction((tx) => {
-    tx.update(expenses)
-      .set({ status: "rejected", reviewedBy: admin.id, reviewedAt: new Date(), rejectionReason: why })
-      .where(and(eq(expenses.id, id), eq(expenses.status, "pending")))
-      .run();
-    audit(tx, { actorId: admin.id, action: "expense.rejected", entity: "expense", entityId: id, data: { reason: why } });
-  });
-}
 
 /**
  * Deletes an expense in the open: it stays on record, marked deleted with who and why, and drops
@@ -315,7 +216,7 @@ export function deleteExpense(admin: SessionUser, id: number, reason: string) {
   });
 }
 
-/** Brings a deleted expense back for review. */
+/** Brings a deleted expense back into the accounts. */
 export function restoreExpense(admin: SessionUser, id: number) {
   const expense = db.select().from(expenses).where(eq(expenses.id, id)).get();
   if (!expense) throw new AppError("not_found");
@@ -324,10 +225,7 @@ export function restoreExpense(admin: SessionUser, id: number) {
   db.transaction((tx) => {
     tx.update(expenses)
       .set({
-        status: "pending",
-        reviewedBy: null,
-        reviewedAt: null,
-        rejectionReason: null,
+        status: "approved",
         voidedBy: null,
         voidedAt: null,
         voidReason: null,
@@ -461,12 +359,3 @@ export function undoReimbursement(admin: SessionUser, id: number, reason: string
   });
 }
 
-/**
- * For when the money goes out straight away: approves the expense and records its payback.
- * If recording the payback fails, the expense simply stays approved and can be paid later.
- */
-export function approveAndPay(admin: SessionUser, id: number, input: { paidOn: string; note: string; proofFileId: string }) {
-  const expense = getForReview(id, "pending");
-  approveExpense(admin, id);
-  return createReimbursement(admin, { userId: expense.userId, expenseIds: [id], ...input });
-}

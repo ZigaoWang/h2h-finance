@@ -4,7 +4,7 @@ import { categories, db, events, expenses, users } from "@/lib/db";
 import { today } from "@/lib/dates";
 import type { BudgetYear } from "@/lib/years";
 
-// What counts as spent: approved (whether or not paid back yet). Pending, rejected and voided don't.
+// What counts as spent: every expense that hasn't been deleted.
 const COUNTED = ["approved", "reimbursed"] as const;
 
 export type Slice = { key: string; nameEn: string; nameZh: string; cents: number; count: number };
@@ -16,7 +16,7 @@ function inYear(year: BudgetYear) {
   return and(eq(expenses.yearId, year.id), inArray(expenses.status, COUNTED));
 }
 
-function sumWhere(year: BudgetYear, status: "pending" | "approved") {
+function sumWhere(year: BudgetYear, status: "approved") {
   return (
     db
       .select({ cents: total, count: tally })
@@ -103,7 +103,6 @@ export function yearSummary(year: BudgetYear, { includePeople }: { includePeople
     lastMonthCents: monthly.get(lastMonth) ?? 0,
     yearProgress,
     remainingCents: year.budgetCents - spent.cents,
-    pending: sumWhere(year, "pending"),
     owed: sumWhere(year, "approved"),
     byCategory,
     byEvent,

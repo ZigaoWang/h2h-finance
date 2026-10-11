@@ -26,7 +26,6 @@ const COPY = {
     budget: "Budget",
     spent: "Spent (approved)",
     remaining: "Remaining",
-    pending: "Waiting for review",
     owed: "Approved, not yet paid back",
     byCategory: "By category",
     byEvent: "By event",
@@ -44,8 +43,6 @@ const COPY = {
       member: "Submitted by",
       amount: "Amount (¥)",
       status: "Status",
-      reviewer: "Reviewed by",
-      reviewedAt: "Reviewed on",
       reimbursement: "Reimbursement",
       paidOn: "Paid back on",
       receipts: "Receipts",
@@ -61,7 +58,7 @@ const COPY = {
       details: "Details",
     },
     total: "Total spent (approved and paid back)",
-    status: { pending: "Pending review", approved: "Approved", reimbursed: "Paid back", rejected: "Rejected", voided: "Voided" },
+    status: { pending: "Recorded", approved: "Recorded", reimbursed: "Paid back", rejected: "Deleted", voided: "Deleted" },
   },
   zh: {
     summary: "汇总",
@@ -74,7 +71,6 @@ const COPY = {
     budget: "预算",
     spent: "已支出（已批准）",
     remaining: "剩余",
-    pending: "待审核",
     owed: "已批准待打款",
     byCategory: "按类别",
     byEvent: "按活动",
@@ -92,8 +88,6 @@ const COPY = {
       member: "提交人",
       amount: "金额（元）",
       status: "状态",
-      reviewer: "审核人",
-      reviewedAt: "审核日期",
       reimbursement: "打款编号",
       paidOn: "报销日期",
       receipts: "凭证",
@@ -109,7 +103,7 @@ const COPY = {
       details: "详情",
     },
     total: "支出合计（已批准及已报销）",
-    status: { pending: "待审核", approved: "已批准", reimbursed: "已报销", rejected: "已驳回", voided: "已作废" },
+    status: { pending: "已记录", approved: "已记录", reimbursed: "已报销", rejected: "已删除", voided: "已删除" },
   },
 } as const;
 
@@ -138,7 +132,6 @@ function styleHeader(sheet: ExcelJS.Worksheet) {
 }
 
 function loadYear(year: BudgetYear) {
-  const reviewers = alias(users, "reviewers");
   const rows = db
     .select({
       id: expenses.id,
@@ -152,8 +145,6 @@ function loadYear(year: BudgetYear) {
       member: users.name,
       amountCents: expenses.amountCents,
       status: expenses.status,
-      reviewer: reviewers.name,
-      reviewedAt: expenses.reviewedAt,
       reimbursementId: expenses.reimbursementId,
       note: expenses.note,
       rejectionReason: expenses.rejectionReason,
@@ -163,7 +154,6 @@ function loadYear(year: BudgetYear) {
     .innerJoin(users, eq(users.id, expenses.userId))
     .innerJoin(categories, eq(categories.id, expenses.categoryId))
     .leftJoin(events, eq(events.id, expenses.eventId))
-    .leftJoin(reviewers, eq(reviewers.id, expenses.reviewedBy))
     .where(eq(expenses.yearId, year.id))
     .orderBy(asc(expenses.spentOn), asc(expenses.id))
     .all();
@@ -255,7 +245,6 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
     [c.budget, summary.budgetCents],
     [c.spent, summary.spent.cents],
     [c.remaining, summary.remainingCents],
-    [c.pending, summary.pending.cents],
     [c.owed, summary.owed.cents],
   ] as const) {
     const row = s.addRow([label, cents / 100]);
@@ -287,8 +276,6 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
     { header: col.member, key: "member", width: 16 },
     { header: col.amount, key: "amount", width: 14, style: { numFmt: MONEY } },
     { header: col.status, key: "status", width: 14 },
-    { header: col.reviewer, key: "reviewer", width: 16 },
-    { header: col.reviewedAt, key: "reviewedAt", width: 12 },
     { header: col.reimbursement, key: "reimbursement", width: 14 },
     { header: col.paidOn, key: "paidOn", width: 12 },
     { header: col.receipts, key: "receipts", width: 40 },
@@ -307,8 +294,6 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
       member: r.member,
       amount: r.amountCents / 100,
       status: c.status[r.status],
-      reviewer: r.reviewer ?? "",
-      reviewedAt: r.reviewedAt ? toDate(r.reviewedAt) : "",
       reimbursement: reimbursement ? reimbursementRef(reimbursement.id) : "",
       paidOn: reimbursement?.paidOn ?? "",
       receipts: files.map((f) => f.path).join("\n"),
