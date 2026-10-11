@@ -327,8 +327,10 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
 
       {action.error && <Alert>{action.error}</Alert>}
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      {/* Lines up with the page column: offset by the sidebar, same width and padding as <main>. */}
+      <div className="fixed right-0 bottom-0 left-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:left-60">
+        <div className="mx-auto max-w-[1080px] px-4 sm:px-6 lg:px-10">
+          <div className="flex max-w-2xl items-center justify-between gap-4 py-3">
           <div className="min-w-0">
             <p className="num text-lg leading-tight font-semibold">{formatMoney(total)}</p>
             <p className="text-[13px] text-muted">{uploading ? t("uploading") : t("itemCount", { count: items.length })}</p>
@@ -336,6 +338,7 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
           <Button type="submit" size="lg" pending={action.pending} disabled={items.length === 0} className="min-w-32">
             {edit ? t("save") : t("submit", { count: items.length })}
           </Button>
+          </div>
         </div>
       </div>
 

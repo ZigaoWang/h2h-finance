@@ -20,7 +20,7 @@ export default async function NewExpensePage() {
   const years = listYears().map(({ startsOn, endsOn }) => ({ startsOn, endsOn }));
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="max-w-2xl">
       <Link href="/expenses" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden />
         {t("back")}

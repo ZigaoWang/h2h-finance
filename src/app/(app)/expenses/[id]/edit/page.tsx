@@ -30,7 +30,7 @@ export default async function EditExpensePage({ params }: PageProps<"/expenses/[
   const events = activeEvents().map(({ id, nameEn, nameZh }) => ({ id, nameEn, nameZh }));
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="max-w-2xl">
       <Link href={`/expenses/${id}`} className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden />
         {t("title", { id })}

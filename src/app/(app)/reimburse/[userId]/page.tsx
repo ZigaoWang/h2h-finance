@@ -22,7 +22,7 @@ export default async function PayBackPage({ params }: PageProps<"/reimburse/[use
   const expenses = listApprovedUnpaid(member.id);
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="max-w-2xl">
       <Link href="/reimburse" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden />
         {t("title")}
