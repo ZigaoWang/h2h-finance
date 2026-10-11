@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardCheck, HandCoins, LayoutDashboard, Plus, ReceiptText, Settings } from "lucide-react";
+import { ClipboardCheck, HandCoins, LayoutDashboard, List, Plus, ReceiptText, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
 
-type Key = "dashboard" | "expenses" | "review" | "reimburse" | "admin";
+type Key = "dashboard" | "expenses" | "review" | "reimburse" | "allExpenses" | "admin";
 type Item = { href: string; key: Key; icon: typeof LayoutDashboard };
 
 const MEMBER: Item[] = [
@@ -17,6 +17,7 @@ const MEMBER: Item[] = [
 const ADMIN: Item[] = [
   { href: "/review", key: "review", icon: ClipboardCheck },
   { href: "/reimburse", key: "reimburse", icon: HandCoins },
+  { href: "/all-expenses", key: "allExpenses", icon: List },
   { href: "/admin", key: "admin", icon: Settings },
 ];
 

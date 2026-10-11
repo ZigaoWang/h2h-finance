@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ExpenseList, type ListItem } from "@/components/expense-list";
 import { EmptyState, Panel, Section } from "@/components/ui/card";
@@ -15,11 +16,13 @@ export function DashboardBody({
   transactions,
   owed,
   linkFor,
+  viewAll,
 }: {
   summary: YearSummary;
   transactions: Transaction[];
   owed?: Owed[];
   linkFor?: (item: ListItem) => string | undefined;
+  viewAll?: string;
 }) {
   const t = useTranslations("dashboard");
   const isPublic = !owed;
@@ -56,7 +59,17 @@ export function DashboardBody({
         )}
       </div>
 
-      <Section title={t("recent")} description={isPublic ? t("recentPublicHint") : undefined}>
+      <Section
+        title={t("recent")}
+        description={isPublic ? t("recentPublicHint") : undefined}
+        action={
+          viewAll && (
+            <Link href={viewAll} className="text-[13px] font-medium text-ink-2 hover:text-ink">
+              {t("viewAll")}
+            </Link>
+          )
+        }
+      >
         <Panel>
           {transactions.length ? (
             <ExpenseList items={transactions} href={linkFor} showStatus={!isPublic} />

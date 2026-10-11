@@ -49,7 +49,8 @@
     "account": "Account",
     "language": "Language",
     "signOut": "Sign out",
-    "adminSection": "Admin"
+    "adminSection": "Admin",
+    "allExpenses": "All expenses"
   },
   "status": {
     "pending": "Pending review",
@@ -96,7 +97,8 @@
     "largest": "Largest expense",
     "yearGone": "{share} of the year gone",
     "aheadOfPace": "Spending is ahead of the year's pace.",
-    "overBudget": "Over budget."
+    "overBudget": "Over budget.",
+    "viewAll": "View all"
   },
   "common": {
     "save": "Save",
@@ -512,5 +514,13 @@
     "footer": "Heart to Heart · YK Pao School",
     "signIn": "Member sign in",
     "openDashboard": "Open dashboard"
+  },
+  "allExpenses": {
+    "title": "All expenses",
+    "description": "Every expense from every member. Open one to edit or delete it.",
+    "search": "Search descriptions and shops",
+    "member": "Member",
+    "everyone": "Everyone",
+    "summary": "{count, plural, one {# expense} other {# expenses}} · {total} approved"
   }
 }

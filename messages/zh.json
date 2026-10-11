@@ -49,7 +49,8 @@
     "account": "账户",
     "language": "语言",
     "signOut": "退出登录",
-    "adminSection": "管理"
+    "adminSection": "管理",
+    "allExpenses": "全部报销"
   },
   "status": {
     "pending": "待审核",
@@ -96,7 +97,8 @@
     "largest": "单笔最大",
     "yearGone": "年度已过 {share}",
     "aheadOfPace": "支出快于年度进度。",
-    "overBudget": "已超出预算。"
+    "overBudget": "已超出预算。",
+    "viewAll": "查看全部"
   },
   "common": {
     "save": "保存",
@@ -512,5 +514,13 @@
     "footer": "心连心 · 包玉刚实验学校",
     "signIn": "成员登录",
     "openDashboard": "进入总览"
+  },
+  "allExpenses": {
+    "title": "全部报销",
+    "description": "所有成员的全部报销，打开即可编辑或删除。",
+    "search": "搜索用途或商家",
+    "member": "成员",
+    "everyone": "所有人",
+    "summary": "共 {count} 笔 · 已批准 {total}"
   }
 }

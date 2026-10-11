@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, inArray, ne, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, like, ne, or, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { notFound } from "next/navigation";
 import type { SessionUser } from "@/lib/auth/dal";
@@ -74,6 +74,19 @@ export function countAwaitingPayback(): number {
 
 export function listOwnExpenses(userId: number, status?: ExpenseStatus): ExpenseRow[] {
   return rows(and(eq(expenses.userId, userId), status ? eq(expenses.status, status) : undefined));
+}
+
+/** Every expense for admins, narrowed by status, member, year and a search over description and shop. */
+export function listAllExpenses(filter: { status?: ExpenseStatus; userId?: number; yearId?: number; query?: string }): ExpenseRow[] {
+  const q = filter.query?.trim();
+  return rows(
+    and(
+      filter.status ? eq(expenses.status, filter.status) : undefined,
+      filter.userId ? eq(expenses.userId, filter.userId) : undefined,
+      filter.yearId ? eq(expenses.yearId, filter.yearId) : undefined,
+      q ? or(like(expenses.description, `%${q}%`), like(expenses.merchant, `%${q}%`)) : undefined,
+    ),
+  );
 }
 
 export function listPendingReview(): ExpenseRow[] {
