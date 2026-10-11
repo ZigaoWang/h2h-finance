@@ -250,8 +250,6 @@
     "removeItem": "移除这笔付款",
     "removePhoto": "移除照片",
     "preview": "截图",
-    "duplicateExact": "这张截图已经提交过",
-    "duplicateSimilar": "这张凭证似乎已经提交过",
     "duplicateOwn": "与报销 #{id} 重复。除非确实是另一笔付款，否则请移除。",
     "duplicateHint": "仍可提交，审核人会看到此提示。",
     "details": "详情",
@@ -291,7 +289,14 @@
       "unauthorized": "登录已失效，请重新登录。",
       "network": "上传失败，请检查网络后重试。"
     },
-    "choose": "选择文件"
+    "choose": "选择文件",
+    "duplicate": {
+      "exact": "这张截图已经提交过",
+      "transaction": "这笔付款已经提交过",
+      "similar": "这张凭证似乎已经提交过"
+    },
+    "paidAt": "付款时间 {time}",
+    "transactionNo": "交易单号 {id}"
   },
   "expenses": {
     "title": "我的报销",
@@ -337,7 +342,8 @@
       "exact": "与 <ref>#{id}</ref> 使用了同一张截图。",
       "similar": "与 <ref>#{id}</ref> 的截图几乎相同且金额一致。",
       "details": "与 <ref>#{id}</ref> 的金额、商家和日期相同。",
-      "earlier": "同一张截图曾经提交过，后来被撤回。"
+      "earlier": "同一张截图曾经提交过，后来被撤回。",
+      "transaction": "与 <ref>#{id}</ref> 是同一笔付款（交易单号相同）。"
     },
     "history": {
       "title": "记录",
@@ -347,7 +353,8 @@
       "approved": "{name} 批准",
       "rejected": "{name} 驳回",
       "voided": "{name} 作废"
-    }
+    },
+    "transactionId": "交易单号"
   },
   "review": {
     "approve": "批准",

@@ -23,7 +23,8 @@ export class UploadError extends Error {
   }
 }
 
-export type Duplicate = { fileId: string; expenseId: number | null; reimbursementId: number | null; exact: boolean };
+export type DuplicateReason = "exact" | "transaction" | "similar";
+export type Duplicate = { fileId: string; expenseId: number | null; reimbursementId: number | null; reason: DuplicateReason };
 
 export type ProcessedUpload = { id: string; ocr: OcrResult; duplicate: Duplicate | null };
 
@@ -77,8 +78,19 @@ function findDuplicate(kind: FileKind, hash: string, dhash: string, ocr: OcrResu
     .where(and(eq(files.kind, kind), or(isNotNull(files.expenseId), isNotNull(files.reimbursementId))))
     .all();
 
+  const match = (c: (typeof candidates)[number], reason: DuplicateReason): Duplicate => ({
+    fileId: c.id,
+    expenseId: c.expenseId,
+    reimbursementId: c.reimbursementId,
+    reason,
+  });
+
   const exact = candidates.find((c) => c.sha256 === hash);
-  if (exact) return { fileId: exact.id, expenseId: exact.expenseId, reimbursementId: exact.reimbursementId, exact: true };
+  if (exact) return match(exact, "exact");
+
+  // A different screenshot of the same payment, e.g. the bill and the payment-success screen.
+  const sameTransaction = ocr.transactionId && candidates.find((c) => c.ocr?.transactionId === ocr.transactionId);
+  if (sameTransaction) return match(sameTransaction, "transaction");
 
   // Visual similarity alone could match two bills from the same app, so the amount must agree too.
   const similar = candidates.find(
@@ -87,9 +99,7 @@ function findDuplicate(kind: FileKind, hash: string, dhash: string, ocr: OcrResu
       ocr.amountCents !== undefined &&
       c.ocr?.amountCents === ocr.amountCents,
   );
-  return similar
-    ? { fileId: similar.id, expenseId: similar.expenseId, reimbursementId: similar.reimbursementId, exact: false }
-    : null;
+  return similar ? match(similar, "similar") : null;
 }
 
 export async function processUpload(input: Buffer, ownerId: number, kind: FileKind): Promise<ProcessedUpload> {

@@ -19,6 +19,8 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
   const { expense, files, flags, reimbursement, proofFileId, history } = detail;
   const isAdmin = viewer.role === "admin";
   const isOwner = expense.userId === viewer.id;
+  // What was read from the first screenshot: shown as supporting detail, never used for totals.
+  const receiptOcr = files[0]?.ocr;
 
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
@@ -34,9 +36,17 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
 
           <dl className="mt-5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-2.5 border-t border-line pt-4 text-sm">
             <Row label={t("merchant")}>{expense.merchant}</Row>
-            <Row label={t("date")}>{formatDate(expense.spentOn, locale)}</Row>
+            <Row label={t("date")}>
+              {formatDate(expense.spentOn, locale)}
+              {receiptOcr?.paidAt && receiptOcr.spentOn === expense.spentOn && <span className="text-muted"> · {receiptOcr.paidAt}</span>}
+            </Row>
             <Row label={t("category")}>{localName(locale, expense.categoryEn, expense.categoryZh)}</Row>
             <Row label={t("event")}>{expense.eventEn ? localName(locale, expense.eventEn, expense.eventZh) : <span className="text-muted">—</span>}</Row>
+            {receiptOcr?.transactionId && (
+              <Row label={t("transactionId")}>
+                <span className="num break-all">{receiptOcr.transactionId}</span>
+              </Row>
+            )}
             <Row label={t("submittedBy")}>{expense.userName}</Row>
             <Row label={t("submittedAt")}>{formatDateTime(expense.createdAt, locale)}</Row>
             {expense.note && <Row label={t("note")}><span className="whitespace-pre-line">{expense.note}</span></Row>}
@@ -129,7 +139,7 @@ function DuplicateAlert({ flags, isAdmin }: { flags: DuplicateFlag[]; isAdmin: b
             ) : (
               chunks
             );
-          const key = flag.kind === "details" ? "details" : flag.exact ? "exact" : "similar";
+          const key = flag.kind === "details" ? "details" : flag.reason;
           return <li key={i}>{t.rich(key, { id: flag.expenseId, ref })}</li>;
         })}
       </ul>

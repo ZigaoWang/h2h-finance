@@ -22,7 +22,7 @@ const MAX_PHOTOS_PER_ITEM = 5;
 const MAX_ITEMS = 20;
 
 type Photo = { key: string; preview: string; fileId?: string; status: "uploading" | "done" | "error"; error?: UploadFailure };
-type Duplicate = { exact: boolean; expenseId: number | null };
+type Duplicate = { reason: "exact" | "transaction" | "similar"; expenseId: number | null };
 type Item = {
   key: string;
   photos: Photo[];
@@ -32,6 +32,9 @@ type Item = {
   // Which fields were filled from the screenshot, so the member knows to glance at them.
   auto: { amount?: boolean; merchant?: boolean; spentOn?: boolean };
   duplicate: Duplicate | null;
+  // Extra details read from the screenshot, shown so the member can see what was picked up.
+  paidAt?: string;
+  transactionId?: string;
 };
 type Option = { id: number; nameEn: string; nameZh: string };
 
@@ -100,6 +103,8 @@ export function ExpenseForm({ categories, events, years, today, edit }: ExpenseF
       const filled: Partial<Item> = {
         photos: item.photos.map((p) => (p.key === photo.key ? { ...p, status: "done", fileId: result.id } : p)),
         duplicate: item.duplicate ?? result.duplicate,
+        paidAt: item.paidAt ?? result.ocr.paidAt,
+        transactionId: item.transactionId ?? result.ocr.transactionId,
         auto: { ...item.auto },
       };
       if (!item.amount && result.ocr.amountCents) {
@@ -552,8 +557,13 @@ function ItemCard({
         </div>
       </div>
 
+      {(item.paidAt || item.transactionId) && (
+        <p className="mt-3 truncate border-t border-line pt-3 text-xs text-muted">
+          {[item.paidAt && t("paidAt", { time: item.paidAt }), item.transactionId && t("transactionNo", { id: item.transactionId })].filter(Boolean).join(" · ")}
+        </p>
+      )}
       {item.duplicate && (
-        <Alert tone="warning" className="mt-3" title={item.duplicate.exact ? t("duplicateExact") : t("duplicateSimilar")}>
+        <Alert tone="warning" className="mt-3" title={t(`duplicate.${item.duplicate.reason}`)}>
           {item.duplicate.expenseId ? t("duplicateOwn", { id: item.duplicate.expenseId }) : t("duplicateHint")}
         </Alert>
       )}

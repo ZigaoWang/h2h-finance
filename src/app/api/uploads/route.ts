@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { and, count, eq, gt } from "drizzle-orm";
 import { getSessionUser } from "@/lib/auth/dal";
-import { db, expenses, files } from "@/lib/db";
-import { MAX_UPLOAD_BYTES, processUpload, sweepAbandonedUploads, UploadError } from "@/lib/files";
+import { db, expenses, files, type OcrResult } from "@/lib/db";
+import { MAX_UPLOAD_BYTES, processUpload, sweepAbandonedUploads, UploadError, type DuplicateReason } from "@/lib/files";
 
 const MAX_UPLOADS_PER_HOUR = 100;
 
@@ -10,9 +10,9 @@ export type UploadResponse =
   | {
       ok: true;
       id: string;
-      ocr: { amountCents?: number; merchant?: string; spentOn?: string };
+      ocr: OcrResult;
       // Members only learn which expense it was when the earlier copy is their own.
-      duplicate: { exact: boolean; expenseId: number | null } | null;
+      duplicate: { reason: DuplicateReason; expenseId: number | null } | null;
     }
   | { ok: false; error: "unauthorized" | "too_large" | "unsupported" | "rate_limited" };
 
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         ? db.select({ userId: expenses.userId }).from(expenses).where(eq(expenses.id, result.duplicate.expenseId)).get()
         : undefined;
       const visible = user.role === "admin" || owner?.userId === user.id;
-      duplicate = { exact: result.duplicate.exact, expenseId: visible ? result.duplicate.expenseId : null };
+      duplicate = { reason: result.duplicate.reason, expenseId: visible ? result.duplicate.expenseId : null };
     }
     return NextResponse.json<UploadResponse>({ ok: true, id: result.id, ocr: result.ocr, duplicate });
   } catch (error) {

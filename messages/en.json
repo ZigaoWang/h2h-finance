@@ -250,8 +250,6 @@
     "removeItem": "Remove this payment",
     "removePhoto": "Remove photo",
     "preview": "Screenshot",
-    "duplicateExact": "This screenshot has already been submitted",
-    "duplicateSimilar": "This looks like a receipt that was already submitted",
     "duplicateOwn": "It matches expense #{id}. Remove it unless this really is a separate payment.",
     "duplicateHint": "You can still submit it; the reviewer will see this warning.",
     "details": "Details",
@@ -291,7 +289,14 @@
       "unauthorized": "You've been signed out. Sign in again.",
       "network": "Upload failed. Check your connection and try again."
     },
-    "choose": "Choose files"
+    "choose": "Choose files",
+    "duplicate": {
+      "exact": "This screenshot has already been submitted",
+      "transaction": "This payment has already been submitted",
+      "similar": "This looks like a receipt that was already submitted"
+    },
+    "paidAt": "Paid at {time}",
+    "transactionNo": "Transaction {id}"
   },
   "expenses": {
     "title": "My expenses",
@@ -337,7 +342,8 @@
       "exact": "The same screenshot is attached to <ref>#{id}</ref>.",
       "similar": "A near-identical screenshot with the same amount is attached to <ref>#{id}</ref>.",
       "details": "Same amount, shop and date as <ref>#{id}</ref>.",
-      "earlier": "The same screenshot was submitted before and later withdrawn."
+      "earlier": "The same screenshot was submitted before and later withdrawn.",
+      "transaction": "The same payment (transaction number) is on <ref>#{id}</ref>."
     },
     "history": {
       "title": "History",
@@ -347,7 +353,8 @@
       "approved": "Approved by {name}",
       "rejected": "Rejected by {name}",
       "voided": "Voided by {name}"
-    }
+    },
+    "transactionId": "Transaction no."
   },
   "review": {
     "approve": "Approve",

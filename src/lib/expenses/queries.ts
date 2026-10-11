@@ -13,6 +13,7 @@ import {
   reimbursements,
   users,
   type ExpenseStatus,
+  type OcrResult,
 } from "@/lib/db";
 
 const reviewers = alias(users, "reviewers");
@@ -85,12 +86,12 @@ export function listApprovedUnpaid(userId: number): ExpenseRow[] {
   return rows(and(eq(expenses.userId, userId), eq(expenses.status, "approved")));
 }
 
-export type ExpenseFile = { id: string; width: number; height: number; duplicateOfId: string | null };
+export type ExpenseFile = { id: string; width: number; height: number; duplicateOfId: string | null; ocr: OcrResult | null };
 
 export function filesFor(expenseIds: number[]) {
   if (!expenseIds.length) return new Map<number, ExpenseFile[]>();
   const list = db
-    .select({ id: files.id, width: files.width, height: files.height, duplicateOfId: files.duplicateOfId, expenseId: files.expenseId })
+    .select({ id: files.id, width: files.width, height: files.height, duplicateOfId: files.duplicateOfId, ocr: files.ocr, expenseId: files.expenseId })
     .from(files)
     .where(inArray(files.expenseId, expenseIds))
     .orderBy(asc(files.createdAt))
@@ -103,7 +104,7 @@ export function filesFor(expenseIds: number[]) {
 }
 
 export type DuplicateFlag =
-  | { kind: "image"; exact: boolean; expenseId: number | null; reimbursementId: number | null }
+  | { kind: "image"; reason: "exact" | "transaction" | "similar"; expenseId: number | null; reimbursementId: number | null }
   | { kind: "details"; expenseId: number };
 
 /** Why an expense might be a double claim: a reused screenshot, or identical details. */
@@ -118,6 +119,8 @@ export function duplicateFlags(expenseIds: number[]): Map<number, DuplicateFlag[
       expenseId: files.expenseId,
       file: files.sha256,
       original: originals.sha256,
+      fileOcr: files.ocr,
+      originalOcr: originals.ocr,
       originalExpenseId: originals.expenseId,
       originalReimbursementId: originals.reimbursementId,
     })
@@ -128,7 +131,12 @@ export function duplicateFlags(expenseIds: number[]): Map<number, DuplicateFlag[
   for (const m of imageMatches) {
     add(m.expenseId!, {
       kind: "image",
-      exact: m.file === m.original,
+      reason:
+        m.file === m.original
+          ? "exact"
+          : m.fileOcr?.transactionId && m.fileOcr.transactionId === m.originalOcr?.transactionId
+            ? "transaction"
+            : "similar",
       expenseId: m.originalExpenseId,
       reimbursementId: m.originalReimbursementId,
     });
