@@ -22,7 +22,7 @@ export class AppError extends Error {
   }
 }
 
-export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: ErrorCode; detail?: string };
+export type ActionResult<T = void> = { ok: true; data: T } | { ok: false; error: ErrorCode; detail?: string };
 
 /** Runs a mutation and turns expected failures into a result the client can show. */
 export async function run<T>(fn: () => T | Promise<T>): Promise<ActionResult<T>> {

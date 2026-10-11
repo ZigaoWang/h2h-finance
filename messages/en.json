@@ -76,5 +76,124 @@
     "noYearAdmin": "Set up this year's budget to start tracking spending.",
     "noYearMember": "The club lead hasn't set up this year's budget yet.",
     "setUpYear": "Set up budget year"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "close": "Close",
+    "saved": "Saved",
+    "optional": "Optional",
+    "back": "Back",
+    "delete": "Delete",
+    "remove": "Remove",
+    "you": "you"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again.",
+    "not_found": "This no longer exists.",
+    "not_allowed": "You can't do that.",
+    "invalid": "Some details aren't valid. Check the form and try again.",
+    "rate_limited": "That's a lot in a short time. Wait a little and try again.",
+    "no_year": "No budget year covers that date. Ask the club lead to set one up.",
+    "locked": "This has already been reviewed and can't be changed.",
+    "file_missing": "A screenshot is missing or was already used. Upload it again.",
+    "inactive_option": "That category or event is no longer available.",
+    "email_taken": "Someone with that email is already a member.",
+    "last_admin": "The club needs at least one admin.",
+    "overlapping_year": "These dates overlap another budget year.",
+    "nothing_selected": "Select at least one expense."
+  },
+  "admin": {
+    "title": "Admin",
+    "description": "Budget, members and the options people choose from.",
+    "tabs": {
+      "label": "Admin sections",
+      "budget": "Budget",
+      "members": "Members",
+      "categories": "Categories",
+      "events": "Events"
+    },
+    "years": {
+      "title": "Budget years",
+      "description": "Each expense counts towards the year its date falls in.",
+      "new": "New year",
+      "newTitle": "New budget year",
+      "editTitle": "Edit budget year",
+      "dialogHint": "Changes to the budget are recorded in the audit log.",
+      "label": "Name",
+      "labelHint": "Shown on the dashboard, e.g. 2026–27.",
+      "startsOn": "Starts",
+      "endsOn": "Ends",
+      "budget": "Budget",
+      "budgetHint": "The total the club can spend this year.",
+      "spent": "Spent",
+      "export": "Year-end pack",
+      "empty": "No budget years yet",
+      "emptyHint": "Create one to start accepting expenses."
+    },
+    "public": {
+      "title": "Public page",
+      "description": "A read-only dashboard anyone can open, for donors and sponsors.",
+      "on": "The public page is live",
+      "off": "The public page is hidden",
+      "whatsShown": "Shows the budget, totals and breakdowns. Never receipts, names, shops or private notes.",
+      "view": "Open the public page",
+      "updated": "Public page updated"
+    },
+    "members": {
+      "title": "Members",
+      "count": "{count, plural, one {# active member} other {# active members}}",
+      "add": "Add member",
+      "addTitle": "Add a member",
+      "addHint": "They'll sign in with a code sent to this email. No password needed.",
+      "editTitle": "Edit member",
+      "email": "Email",
+      "emailFixed": "To change the email, remove this member and add the new address.",
+      "name": "Name",
+      "nameHint": "Shown to other members on the dashboard. Never shown publicly.",
+      "role": "Role",
+      "roles": {
+        "member": "Member",
+        "admin": "Admin"
+      },
+      "memberHint": "Can submit expenses and see the dashboard.",
+      "adminHint": "Can also review expenses, pay members back and manage everything here.",
+      "you": "(you)",
+      "remove": "Remove",
+      "restore": "Restore",
+      "removedLabel": "Removed",
+      "removeTitle": "Remove {name}?",
+      "removeHint": "They'll be signed out and can't sign in again. Their expenses stay on record, and you can restore them later.",
+      "added": "Member added",
+      "removed": "Member removed",
+      "restored": "Member restored"
+    },
+    "options": {
+      "nameEn": "Name in English",
+      "nameZh": "Name in Chinese",
+      "nameZhHint": "Leave empty to use the English name.",
+      "heldOn": "Date",
+      "used": "{count, plural, =0 {Not used yet} one {Used once} other {Used # times}}",
+      "archive": "Archive",
+      "restore": "Restore",
+      "archivedLabel": "Archived",
+      "archived": "Archived",
+      "restored": "Restored"
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "What the money was spent on. Archived categories stay on old expenses.",
+      "add": "Add category",
+      "editTitle": "Edit category",
+      "empty": "No categories yet"
+    },
+    "events": {
+      "title": "Events",
+      "description": "Charity sales and other activities expenses can be tied to.",
+      "add": "Add event",
+      "editTitle": "Edit event",
+      "empty": "No events yet"
+    }
   }
 }

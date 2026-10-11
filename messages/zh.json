@@ -76,5 +76,124 @@
     "noYearAdmin": "设置本年度预算后即可开始记录支出。",
     "noYearMember": "社长尚未设置本年度预算。",
     "setUpYear": "设置预算年度"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "close": "关闭",
+    "saved": "已保存",
+    "optional": "选填",
+    "back": "返回",
+    "delete": "删除",
+    "remove": "移除",
+    "you": "你"
+  },
+  "errors": {
+    "generic": "出了点问题，请重试。",
+    "not_found": "该内容已不存在。",
+    "not_allowed": "你无权执行此操作。",
+    "invalid": "部分信息有误，请检查后重试。",
+    "rate_limited": "操作过于频繁，请稍后再试。",
+    "no_year": "该日期不在任何预算年度内，请联系社长设置。",
+    "locked": "该记录已审核，无法修改。",
+    "file_missing": "截图缺失或已被使用，请重新上传。",
+    "inactive_option": "该类别或活动已停用。",
+    "email_taken": "该邮箱已是社团成员。",
+    "last_admin": "社团至少需要一名管理员。",
+    "overlapping_year": "日期与其他预算年度重叠。",
+    "nothing_selected": "请至少选择一笔支出。"
+  },
+  "admin": {
+    "title": "管理",
+    "description": "预算、成员以及可选的类别和活动。",
+    "tabs": {
+      "label": "管理分区",
+      "budget": "预算",
+      "members": "成员",
+      "categories": "类别",
+      "events": "活动"
+    },
+    "years": {
+      "title": "预算年度",
+      "description": "每笔支出按其日期计入对应年度。",
+      "new": "新建年度",
+      "newTitle": "新建预算年度",
+      "editTitle": "编辑预算年度",
+      "dialogHint": "预算的修改会记录在审计日志中。",
+      "label": "名称",
+      "labelHint": "显示在总览页，例如 2026–27。",
+      "startsOn": "开始",
+      "endsOn": "结束",
+      "budget": "预算",
+      "budgetHint": "本年度社团可支出的总额。",
+      "spent": "已支出",
+      "export": "年终材料",
+      "empty": "尚无预算年度",
+      "emptyHint": "创建后即可开始提交报销。"
+    },
+    "public": {
+      "title": "公开页面",
+      "description": "任何人都能查看的只读账目，供捐赠者和赞助方了解善款用途。",
+      "on": "公开页面已开启",
+      "off": "公开页面已关闭",
+      "whatsShown": "显示预算、总额和分类统计。不显示凭证、姓名、商家或备注。",
+      "view": "打开公开页面",
+      "updated": "公开页面设置已更新"
+    },
+    "members": {
+      "title": "成员",
+      "count": "{count} 名在册成员",
+      "add": "添加成员",
+      "addTitle": "添加成员",
+      "addHint": "成员通过发送到该邮箱的验证码登录，无需密码。",
+      "editTitle": "编辑成员",
+      "email": "邮箱",
+      "emailFixed": "如需更换邮箱，请移除该成员后添加新邮箱。",
+      "name": "姓名",
+      "nameHint": "仅对社团成员显示，不会公开。",
+      "role": "角色",
+      "roles": {
+        "member": "成员",
+        "admin": "管理员"
+      },
+      "memberHint": "可以提交报销、查看总览。",
+      "adminHint": "还可以审核报销、给成员打款并管理此处所有设置。",
+      "you": "（你）",
+      "remove": "移除",
+      "restore": "恢复",
+      "removedLabel": "已移除",
+      "removeTitle": "移除 {name}？",
+      "removeHint": "对方将被登出且无法再登录。其报销记录会保留，之后也可以恢复。",
+      "added": "已添加成员",
+      "removed": "已移除成员",
+      "restored": "已恢复成员"
+    },
+    "options": {
+      "nameEn": "英文名称",
+      "nameZh": "中文名称",
+      "nameZhHint": "留空则使用英文名称。",
+      "heldOn": "日期",
+      "used": "{count, plural, =0 {尚未使用} other {已使用 # 次}}",
+      "archive": "停用",
+      "restore": "恢复",
+      "archivedLabel": "已停用",
+      "archived": "已停用",
+      "restored": "已恢复"
+    },
+    "categories": {
+      "title": "类别",
+      "description": "支出的用途。停用的类别仍保留在历史记录中。",
+      "add": "添加类别",
+      "editTitle": "编辑类别",
+      "empty": "尚无类别"
+    },
+    "events": {
+      "title": "活动",
+      "description": "义卖等可以关联支出的活动。",
+      "add": "添加活动",
+      "editTitle": "编辑活动",
+      "empty": "尚无活动"
+    }
   }
 }
