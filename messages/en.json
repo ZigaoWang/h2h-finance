@@ -436,11 +436,9 @@
   "home": {
     "private": "The accounts aren't public at the moment.",
     "noYear": "No budget has been published yet.",
-    "signIn": "Member sign in",
+    "signIn": "Members only · Sign in",
     "openDashboard": "Open dashboard",
-    "mainSite": "Heart to Heart website",
-    "madeBy": "Made by <link>Zigao Wang</link>",
-    "openSource": "Open source on GitHub"
+    "mainSite": "Heart to Heart website"
   },
   "allExpenses": {
     "title": "All expenses",
@@ -449,5 +447,12 @@
     "member": "Member",
     "everyone": "Everyone",
     "summary": "{count, plural, one {# expense} other {# expenses}} · {total} approved"
+  },
+  "footer": {
+    "label": "Footer",
+    "club": "Heart to Heart · YK Pao School",
+    "website": "Heart to Heart website",
+    "source": "Source code",
+    "legal": "© {year} Heart to Heart. This software is open source, licensed under the <license>GNU Affero General Public License v3.0</license>. Made by <author>Zigao Wang</author>."
   }
 }
