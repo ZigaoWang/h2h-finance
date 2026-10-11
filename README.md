@@ -93,18 +93,17 @@ server {
 
 HTTPS is required: the session cookie is marked `Secure` in production.
 
-### Without Docker (pm2)
+### Deploying (pm2)
 
-If the server already runs Node apps with pm2, the app can run the same way. Build on the server, then start the standalone output with the environment file:
+The live site deploys from GitHub, never from a laptop. Push to `main`, then:
 
 ```sh
-npm ci && npm run build
-cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
-cd .next/standalone
-pm2 start server.js --name h2h-finance --node-args="--env-file=/path/to/.env" && pm2 save
+npm run deploy
 ```
 
-With `.env` containing `NODE_ENV=production`, `PORT`, `HOSTNAME=127.0.0.1`, `DATA_DIR`, `TZ=Asia/Shanghai` and `AUTH_SECRET`. To update: copy the new code over, run the build and copy steps again, then `pm2 restart h2h-finance`. Migrations run automatically on start.
+It refuses to run with uncommitted or unpushed changes, then on the server clones `main` into a new folder under `releases/`, builds it, backs up the database, points `current` at it and restarts the `h2h-finance` pm2 process. If `/api/health` doesn't answer within 30 seconds it switches back to the previous release. The last three releases are kept.
+
+The server needs `/www/wwwroot/finance.h2h.ykps.net/.env` with `NODE_ENV=production`, `PORT`, `HOSTNAME=127.0.0.1`, `DATA_DIR`, `TZ=Asia/Shanghai` and `AUTH_SECRET`. Data lives in `DATA_DIR`, outside the releases. Override `DEPLOY_HOST` or `APP_DIR` to deploy elsewhere.
 
 ### Backups
 
