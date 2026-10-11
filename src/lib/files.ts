@@ -11,6 +11,8 @@ import { readReceipt } from "@/lib/ocr";
 
 export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 const MAX_DIMENSION = 2400;
+// Generous for any phone photo, small enough that a crafted image can't exhaust memory.
+const MAX_INPUT_PIXELS = 80_000_000;
 const THUMB_WIDTH = 480;
 // Out of 256 bits. Re-saved copies of one screenshot land well under this; different screenshots well over.
 const SIMILAR_DISTANCE = 20;
@@ -95,7 +97,7 @@ export async function processUpload(input: Buffer, ownerId: number, kind: FileKi
 
   let meta: Metadata;
   try {
-    meta = await sharp(input).metadata();
+    meta = await sharp(input, { limitInputPixels: MAX_INPUT_PIXELS }).metadata();
   } catch {
     throw new UploadError("unsupported");
   }
@@ -106,7 +108,7 @@ export async function processUpload(input: Buffer, ownerId: number, kind: FileKi
   // Normalise: apply camera rotation, drop metadata (including location), cap the size.
   let full: { data: Buffer; info: OutputInfo };
   try {
-    full = await sharp(input)
+    full = await sharp(input, { limitInputPixels: MAX_INPUT_PIXELS })
       .rotate()
       .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
       .flatten({ background: "#ffffff" })

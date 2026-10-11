@@ -1,4 +1,5 @@
 import "server-only";
+import { once } from "node:events";
 import { PassThrough, Readable } from "node:stream";
 import { ZipArchive } from "archiver";
 import { asc, eq, inArray } from "drizzle-orm";
@@ -380,12 +381,15 @@ export async function buildYearEndPack(year: BudgetYear, locale: Locale): Promis
   archive.pipe(output);
   archive.append(spreadsheet, { name: `${folder}/${folder}.xlsx` });
 
+  // One file at a time, waiting for each to be written, so memory stays flat however many receipts there are.
+  const entries = [...[...receiptPaths.values()].flat(), ...transferPaths.values()];
   void (async () => {
     try {
-      for (const list of receiptPaths.values()) {
-        for (const f of list) archive.append(await readStoredFile(f.fileId, "full"), { name: `${folder}/${f.path}` });
+      for (const f of entries) {
+        const written = once(archive, "entry");
+        archive.append(await readStoredFile(f.fileId, "full"), { name: `${folder}/${f.path}` });
+        await written;
       }
-      for (const f of transferPaths.values()) archive.append(await readStoredFile(f.fileId, "full"), { name: `${folder}/${f.path}` });
       await archive.finalize();
     } catch (error) {
       archive.abort();
