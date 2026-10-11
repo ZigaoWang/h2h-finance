@@ -87,7 +87,16 @@
     "noYearMember": "The club lead hasn't set up this year's budget yet.",
     "setUpYear": "Set up budget year",
     "ofBudgetShare": "{share} of {budget} budget",
-    "budget": "Budget"
+    "budget": "Budget",
+    "thisMonth": "This month",
+    "vsLastMonth": "{sign, select, up {Up from} down {Down from} other {Same as}} {amount} last month",
+    "average": "Average",
+    "perExpense": "per expense",
+    "approvedOnly": "approved",
+    "largest": "Largest expense",
+    "yearGone": "{share} of the year gone",
+    "aheadOfPace": "Spending is ahead of the year's pace.",
+    "overBudget": "Over budget."
   },
   "common": {
     "save": "Save",

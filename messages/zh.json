@@ -87,7 +87,16 @@
     "noYearMember": "社长尚未设置本年度预算。",
     "setUpYear": "设置预算年度",
     "ofBudgetShare": "已使用预算 {budget} 的 {share}",
-    "budget": "预算"
+    "budget": "预算",
+    "thisMonth": "本月",
+    "vsLastMonth": "{sign, select, up {高于} down {低于} other {持平于}}上月 {amount}",
+    "average": "平均",
+    "perExpense": "每笔支出",
+    "approvedOnly": "已批准",
+    "largest": "单笔最大",
+    "yearGone": "年度已过 {share}",
+    "aheadOfPace": "支出快于年度进度。",
+    "overBudget": "已超出预算。"
   },
   "common": {
     "save": "保存",

@@ -1,6 +1,7 @@
 import "server-only";
-import { and, desc, eq, inArray, sql, sum } from "drizzle-orm";
+import { and, desc, eq, inArray, max, sql, sum } from "drizzle-orm";
 import { categories, db, events, expenses, users } from "@/lib/db";
+import { today } from "@/lib/dates";
 import type { BudgetYear } from "@/lib/years";
 
 // What counts as spent: approved (whether or not paid back yet). Pending, rejected and voided don't.
@@ -84,9 +85,23 @@ export function yearSummary(year: BudgetYear, { includePeople }: { includePeople
       .map((r) => [r.month, r.cents]),
   );
 
+  const largest = db.select({ cents: max(expenses.amountCents) }).from(expenses).where(inYear(year)).get()?.cents ?? 0;
+  const now = today();
+  const thisMonth = now.slice(0, 7);
+  const [y, m] = thisMonth.split("-").map(Number);
+  const lastMonth = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
+  // How far through the year we are, to read spending against: 40% spent at 50% of the year is on pace.
+  const span = Date.parse(year.endsOn) - Date.parse(year.startsOn) + 86_400_000;
+  const yearProgress = Math.min(1, Math.max(0, (Date.parse(now) - Date.parse(year.startsOn) + 86_400_000) / span));
+
   return {
     budgetCents: year.budgetCents,
     spent,
+    averageCents: spent.count ? Math.round(spent.cents / spent.count) : 0,
+    largestCents: largest,
+    thisMonthCents: monthly.get(thisMonth) ?? 0,
+    lastMonthCents: monthly.get(lastMonth) ?? 0,
+    yearProgress,
     remainingCents: year.budgetCents - spent.cents,
     pending: sumWhere(year, "pending"),
     owed: sumWhere(year, "approved"),
