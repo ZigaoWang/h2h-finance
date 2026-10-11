@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combineReadings, normalizeLine, parseReceiptText, textToLines, type OcrLine } from "./parse";
+import { checkTransactionId, combineReadings, normalizeLine, parseReceiptText, textToLines, type OcrLine } from "./parse";
 
 describe("normalizeLine", () => {
   it("joins Chinese characters that OCR split apart", () => {
@@ -225,3 +225,16 @@ it("never takes another row label as a value when the label column is read on it
   const labelsOnly = lines([[96, "当前状态"], [88, "支付时间"], [93, "商户全称"], [89, "收单机构"], [90, "OK"], [90, "-14.13"]]);
   expect(combineReadings([labelsOnly]).merchant).toBe("OK");
 });
+
+describe("checkTransactionId", () => {
+  it("accepts WeChat and Alipay numbers that contain the payment date", () => {
+    expect(checkTransactionId("4500000323202608147377866981", "2026-08-14")).toBe("4500000323202608147377866981");
+    expect(checkTransactionId("2026091322001164071453199993", "2026-09-13")).toBe("2026091322001164071453199993");
+  });
+
+  it("rejects misreads: wrong length or a date that doesn't match", () => {
+    expect(checkTransactionId("202600132300116407145319999", "2026-09-13")).toBeUndefined();
+    expect(checkTransactionId("2026001323001164071453199993", "2026-09-13")).toBeUndefined();
+  });
+});
+

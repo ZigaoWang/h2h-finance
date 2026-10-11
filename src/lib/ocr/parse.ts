@@ -60,6 +60,19 @@ const NOT_MERCHANT =
 const ROW_LABEL =
   /^(当前状态|支付时间|付款时间|创建时间|商品|商品说明|商户全称|商户名称|收单机构|支付方式|付款方式|交易类型|交易单号|交易号|商户单号|商家订单号|订单号|对方账户|收款方全称|收款方|标价|市场汇率|优惠|外语凭证|备注|余额|关联账单|账单服务|联系商家)$/;
 
+/** The row label of the platform transaction number, e.g. for re-reading just that row. */
+export const TRANSACTION_ROW = /^(交易单号|交易号)/;
+
+/**
+ * WeChat and Alipay transaction numbers are 28 digits and contain the payment date
+ * (Alipay starts with it; WeChat has it at the eleventh digit). Anything else is a misread.
+ */
+export function checkTransactionId(digits: string | undefined, spentOn: string | undefined): string | undefined {
+  if (!digits || !/^\d{28}$/.test(digits)) return undefined;
+  if (spentOn && !digits.includes(spentOn.replaceAll("-", ""))) return undefined;
+  return digits;
+}
+
 type Candidate<T> = { value: T; confidence: number };
 type Field<T> = Candidate<T> | undefined;
 
@@ -221,7 +234,10 @@ export function combineReadings(readings: OcrLine[][]): OcrResult {
   const paidAt = spentOn ? pick(parsed.filter((r) => r.spentOn?.value === spentOn).map((r) => r.paidAt)) : undefined;
   if (paidAt) result.paidAt = paidAt;
   const transactionId = pick(parsed.map((r) => r.transactionId));
-  if (transactionId) result.transactionId = transactionId;
+  // A shop's own order number has no date to check; the platform's number must contain it.
+  const platformNumber = transactionId && /^\d{28}$/.test(transactionId);
+  const checked = platformNumber ? checkTransactionId(transactionId, spentOn) : transactionId;
+  if (checked) result.transactionId = checked;
   return result;
 }
 
