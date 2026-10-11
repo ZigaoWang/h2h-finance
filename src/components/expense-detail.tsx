@@ -12,7 +12,7 @@ import { formatDate, formatDateTime } from "@/lib/dates";
 import type { DuplicateFlag, ExpenseDetail as Detail } from "@/lib/expenses/queries";
 import { localName } from "@/lib/i18n-names";
 import { formatMoney } from "@/lib/money";
-import { dateInTransactionId } from "@/lib/ocr/parse";
+import { screenshotMismatches } from "@/lib/expenses/checks";
 
 /** One expense with its proof. Used on the detail page and in the review queue. */
 export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail; viewer: SessionUser; inQueue?: boolean }) {
@@ -24,12 +24,10 @@ export function ExpenseDetailView({ detail, viewer, inQueue }: { detail: Detail;
   // What was read from the first screenshot: shown as supporting detail, never used for totals.
   const receiptOcr = files[0]?.ocr;
   // Details that disagree with the screenshot are worth a second look before approving or paying.
-  const screenshotDate = (receiptOcr?.transactionId && dateInTransactionId(receiptOcr.transactionId)) || receiptOcr?.spentOn;
+  const differ = screenshotMismatches(expense, receiptOcr);
   const mismatches = [
-    receiptOcr?.amountCents && receiptOcr.amountCents !== expense.amountCents
-      ? t("mismatch.amount", { amount: formatMoney(receiptOcr.amountCents) })
-      : null,
-    screenshotDate && screenshotDate !== expense.spentOn ? t("mismatch.date", { date: formatDate(screenshotDate, locale) }) : null,
+    differ.amountCents ? t("mismatch.amount", { amount: formatMoney(differ.amountCents) }) : null,
+    differ.spentOn ? t("mismatch.date", { date: formatDate(differ.spentOn, locale) }) : null,
   ].filter((m): m is string => !!m);
 
   return (
@@ -177,7 +175,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function DuplicateAlert({ flags, isAdmin }: { flags: DuplicateFlag[]; isAdmin: boolean }) {
+export function DuplicateAlert({ flags, isAdmin }: { flags: DuplicateFlag[]; isAdmin: boolean }) {
   const t = useTranslations("expense.duplicates");
   return (
     <Alert tone="warning" title={t("title")}>

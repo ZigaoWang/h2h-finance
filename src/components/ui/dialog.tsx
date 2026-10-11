@@ -10,12 +10,14 @@ export function Dialog({
   onClose,
   title,
   description,
+  wide,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title: ReactNode;
   description?: ReactNode;
+  wide?: boolean;
   children: ReactNode;
 }) {
   const t = useTranslations("common");
@@ -33,7 +35,7 @@ export function Dialog({
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg border border-line bg-surface p-0 text-ink shadow-pop backdrop:animate-fade-in open:animate-fade-in"
+      className={`m-auto w-[calc(100%-2rem)] ${wide ? "max-w-2xl" : "max-w-md"} rounded-lg border border-line bg-surface p-0 text-ink shadow-pop backdrop:animate-fade-in open:animate-fade-in`}
     >
       {open && (
         <div className="p-5 sm:p-6">

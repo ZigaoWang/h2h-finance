@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ExpenseDetailView } from "@/components/expense-detail";
+import { DuplicateAlert } from "@/components/expense-detail";
+import { DeleteAction, ReviewActions } from "@/components/review-actions";
+import { ScreenshotThumb } from "@/components/screenshot-thumb";
+import { Alert } from "@/components/ui/alert";
+import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, Panel } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { requireAdmin } from "@/lib/auth/dal";
-import { cn } from "@/lib/cn";
-import { formatDate } from "@/lib/dates";
-import { duplicateFlags, filesFor, getExpenseDetail, listPendingReview } from "@/lib/expenses/queries";
+import { formatDate, formatDateTime, timestamp } from "@/lib/dates";
+import { screenshotMismatches } from "@/lib/expenses/checks";
+import { duplicateFlags, filesFor, listPendingReview } from "@/lib/expenses/queries";
+import { localName } from "@/lib/i18n-names";
 import { formatMoney } from "@/lib/money";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,92 +20,85 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("review") };
 }
 
-export default async function ReviewPage({ searchParams }: PageProps<"/review">) {
-  const admin = await requireAdmin();
-  const t = await getTranslations("reviewQueue");
+/** Everything waiting for a decision, one card each, with the screenshot and every action in place. */
+export default async function ReviewPage() {
+  await requireAdmin();
+  const t = await getTranslations();
   const locale = await getLocale();
   const pending = listPendingReview();
   const ids = pending.map((e) => e.id);
   const flags = duplicateFlags(ids);
-  const thumbs = filesFor(ids);
-
-  // After approving, the same URL falls through to the next expense in line.
-  const requested = Number((await searchParams).id);
-  const explicit = pending.some((e) => e.id === requested);
-  const selected = explicit ? requested : pending[0]?.id;
+  const receipts = filesFor(ids);
   const total = pending.reduce((sum, e) => sum + e.amountCents, 0);
 
   return (
     <>
-      <div className={cn(explicit && "max-xl:hidden")}>
-        <PageHeader
-          title={t("title")}
-          description={pending.length ? t("summary", { count: pending.length, total: formatMoney(total) }) : t("description")}
-        />
-      </div>
+      <PageHeader
+        title={t("reviewQueue.title")}
+        description={pending.length ? t("reviewQueue.summary", { count: pending.length, total: formatMoney(total) }) : t("reviewQueue.description")}
+      />
 
       {pending.length === 0 ? (
         <Panel>
-          <EmptyState title={t("emptyTitle")} description={t("emptyHint")} />
+          <EmptyState title={t("reviewQueue.emptyTitle")} description={t("reviewQueue.emptyHint")} />
         </Panel>
       ) : (
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-start">
-          <Panel className={cn("xl:sticky xl:top-10", explicit && "max-xl:hidden")}>
-            <ul className="divide-y divide-line xl:max-h-[calc(100dvh-5rem)] xl:overflow-y-auto">
-              {pending.map((e) => {
-                const thumb = thumbs.get(e.id)?.[0];
-                return (
-                  <li key={e.id}>
-                    <Link
-                      href={`/review?id=${e.id}`}
-                      aria-current={e.id === selected ? "true" : undefined}
-                      className="flex gap-3 px-4 py-3 transition-colors hover:bg-subtle/60 xl:aria-[current=true]:bg-subtle"
-                    >
-                      <div className="h-14 w-10 shrink-0 overflow-hidden rounded border border-line bg-subtle">
-                        {thumb && (
-                          // eslint-disable-next-line @next/next/no-img-element -- private, access-checked files
-                          <img src={`/api/files/${thumb.id}?size=thumb`} alt="" className="size-full object-cover object-top" />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <p className="truncate text-sm font-medium">{e.userName}</p>
-                          <p className="num shrink-0 text-sm font-medium">{formatMoney(e.amountCents)}</p>
-                        </div>
-                        <p className="truncate text-[13px] text-muted">{e.description}</p>
-                        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-faint">
-                          {formatDate(e.spentOn, locale)}
-                          {flags.has(e.id) && (
-                            <span className="inline-flex items-center gap-1 text-pending">
-                              <AlertTriangle className="size-3" aria-hidden />
-                              {t("possibleDuplicate")}
-                            </span>
-                          )}
+        <ul className="flex flex-col gap-4">
+          {pending.map((e) => {
+            const files = receipts.get(e.id) ?? [];
+            const differ = screenshotMismatches(e, files[0]?.ocr);
+            const meta = [
+              e.merchant,
+              formatDate(e.spentOn, locale),
+              localName(locale, e.categoryEn, e.categoryZh),
+              e.eventEn || e.eventZh ? localName(locale, e.eventEn, e.eventZh) : null,
+            ].filter(Boolean);
+            return (
+              <li key={e.id}>
+                <Panel className="flex gap-4 p-4 sm:gap-5">
+                  {files[0] && <ScreenshotThumb fileId={files[0].id} count={files.length} />}
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="line-clamp-2 text-[15px] font-medium">{e.description}</p>
+                        <p className="mt-0.5 text-[13px] text-muted">
+                          <span className="font-medium text-ink-2">{e.userName}</span> · <time title={formatDateTime(e.createdAt, locale)}>{formatDate(timestamp(e.createdAt).slice(0, 10), locale)}</time>
                         </p>
                       </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </Panel>
+                      <p className="num shrink-0 text-lg font-semibold tracking-tight">{formatMoney(e.amountCents)}</p>
+                    </div>
+                    <p className="mt-2 text-[13px] text-ink-2">{meta.join(" · ")}</p>
 
-          {selected && (
-            <section className={cn(!explicit && "max-xl:hidden")} aria-label={t("selected")}>
-              <Link href="/review" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink xl:hidden">
-                <ArrowLeft className="size-4" aria-hidden />
-                {t("backToQueue", { count: pending.length })}
-              </Link>
-              <div className="mb-3 flex items-baseline justify-between gap-4">
-                <h2 className="text-lg font-semibold">{t("expense", { id: selected })}</h2>
-                <Link href={`/expenses/${selected}`} className="text-sm text-muted hover:text-ink">
-                  {t("openFull")}
-                </Link>
-              </div>
-              <ExpenseDetailView detail={getExpenseDetail(selected, admin)} viewer={admin} inQueue />
-            </section>
-          )}
-        </div>
+                    <div className="mt-3 flex flex-col gap-2 empty:hidden">
+                      {flags.get(e.id) && <DuplicateAlert flags={flags.get(e.id)!} isAdmin />}
+                      {(differ.amountCents || differ.spentOn) && (
+                        <Alert tone="warning" title={t("expense.mismatch.title")}>
+                          {[
+                            differ.amountCents && t("expense.mismatch.amount", { amount: formatMoney(differ.amountCents) }),
+                            differ.spentOn && t("expense.mismatch.date", { date: formatDate(differ.spentOn, locale) }),
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        </Alert>
+                      )}
+                    </div>
+
+                    <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
+                      <ReviewActions id={e.id} compact />
+                      <ButtonLink href={`/expenses/${e.id}/edit`} variant="ghost" size="sm">
+                        {t("expense.edit")}
+                      </ButtonLink>
+                      <DeleteAction id={e.id} />
+                      <Link href={`/expenses/${e.id}`} className="ml-auto text-[13px] text-muted hover:text-ink">
+                        {t("reviewQueue.details")}
+                      </Link>
+                    </div>
+                  </div>
+                </Panel>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </>
   );

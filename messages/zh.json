@@ -400,11 +400,7 @@
     "summary": "{count} 笔待审核 · {total}",
     "emptyTitle": "已全部处理",
     "emptyHint": "新的报销会显示在这里。",
-    "possibleDuplicate": "可能重复",
-    "selected": "当前报销",
-    "backToQueue": "返回列表（{count}）",
-    "expense": "报销 #{id}",
-    "openFull": "打开完整页面"
+    "details": "详情"
   },
   "reimburse": {
     "title": "打款",

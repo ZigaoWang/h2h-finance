@@ -400,11 +400,7 @@
     "summary": "{count, plural, one {# expense} other {# expenses}} waiting · {total}",
     "emptyTitle": "All caught up",
     "emptyHint": "New submissions will show up here.",
-    "possibleDuplicate": "Possible duplicate",
-    "selected": "Selected expense",
-    "backToQueue": "Back to queue ({count})",
-    "expense": "Expense #{id}",
-    "openFull": "Open full page"
+    "details": "Details"
   },
   "reimburse": {
     "title": "Pay back",

@@ -14,7 +14,7 @@ import { cn } from "@/lib/cn";
 const QUICK_REASONS = ["unclear", "notClub", "duplicate", "wrongAmount"] as const;
 
 /** Approve or reject a pending expense. `onDone` lets the review queue move to the next one. */
-export function ReviewActions({ id, onDone, className }: { id: number; onDone?: () => void; className?: string }) {
+export function ReviewActions({ id, onDone, compact, className }: { id: number; onDone?: () => void; compact?: boolean; className?: string }) {
   const t = useTranslations("review");
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
@@ -29,15 +29,32 @@ export function ReviewActions({ id, onDone, className }: { id: number; onDone?: 
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <div className="grid grid-cols-2 gap-2">
-        <Button variant="secondary" size="lg" onClick={() => { setReason(""); reject.clearError(); setRejecting(true); }} disabled={approve.pending}>
-          <X className="size-4" aria-hidden />
+      <div className={compact ? "flex gap-2" : "grid grid-cols-2 gap-2"}>
+        {compact && (
+          <Button size="sm" onClick={() => approve.execute(id)} pending={approve.pending}>
+            <Check className="size-3.5" aria-hidden />
+            {t("approve")}
+          </Button>
+        )}
+        <Button
+          variant="secondary"
+          size={compact ? "sm" : "lg"}
+          onClick={() => {
+            setReason("");
+            reject.clearError();
+            setRejecting(true);
+          }}
+          disabled={approve.pending}
+        >
+          <X className={compact ? "size-3.5" : "size-4"} aria-hidden />
           {t("reject")}
         </Button>
-        <Button size="lg" onClick={() => approve.execute(id)} pending={approve.pending}>
-          <Check className="size-4" aria-hidden />
-          {t("approve")}
-        </Button>
+        {!compact && (
+          <Button size="lg" onClick={() => approve.execute(id)} pending={approve.pending}>
+            <Check className="size-4" aria-hidden />
+            {t("approve")}
+          </Button>
+        )}
       </div>
       {approve.error && <Alert>{approve.error}</Alert>}
 
