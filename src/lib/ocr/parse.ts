@@ -12,6 +12,8 @@ const MIN_CONFIDENCE = 80;
 // The big headline amount reads with low confidence even when right, but it must match a strict
 // money format to count at all, so a lower bar is safe there.
 const MIN_HEADLINE_AMOUNT_CONFIDENCE = 50;
+// Reads this confident count as votes, but a value needs one solid read to win.
+const MIN_VOTE_CONFIDENCE = 60;
 // When readings disagree evenly, the most confident one wins only by a clear margin.
 const DECISIVE_MARGIN = 8;
 
@@ -186,18 +188,19 @@ function analyse(raw: OcrLine[]): Reading {
 }
 
 /**
- * One value from several readings. Unsure reads are ignored. Among the rest, the value most
- * readings agree on wins; an even split goes to the most confident only by a clear margin.
+ * One value from several readings. Reasonably confident reads vote; the value most readings
+ * agree on wins, provided one of them was read solidly. An even split goes to the most
+ * confident only by a clear margin.
  */
 function pick<T>(fields: Field<T>[], minConfidence = MIN_CONFIDENCE): T | undefined {
   const votes = new Map<T, { count: number; best: number }>();
   for (const f of fields) {
-    if (!f || f.confidence < minConfidence) continue;
+    if (!f || f.confidence < Math.min(minConfidence, MIN_VOTE_CONFIDENCE)) continue;
     const vote = votes.get(f.value) ?? { count: 0, best: 0 };
     votes.set(f.value, { count: vote.count + 1, best: Math.max(vote.best, f.confidence) });
   }
   const ranked = [...votes].sort(([, a], [, b]) => b.count - a.count || b.best - a.best);
-  if (!ranked.length) return undefined;
+  if (!ranked.length || ranked[0][1].best < minConfidence) return undefined;
   const [[value, top], runnerUp] = ranked;
   if (!runnerUp || top.count > runnerUp[1].count) return value;
   return top.best - runnerUp[1].best >= DECISIVE_MARGIN ? value : undefined;

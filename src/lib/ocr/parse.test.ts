@@ -238,3 +238,9 @@ describe("checkTransactionId", () => {
   });
 });
 
+it("counts a less confident agreeing read as a vote (闪送 read twice beats one 内送)", () => {
+  const read = (confidence: number, name: string) => lines([[confidence, name], [88, "-31.20"]]);
+  expect(combineReadings([read(86, "闪送"), read(76, "闪送"), read(80, "内送")]).merchant).toBe("闪送");
+  expect(combineReadings([read(71, "滴泣出行")]).merchant).toBeUndefined();
+});
+
