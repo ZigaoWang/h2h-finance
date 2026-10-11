@@ -15,8 +15,19 @@ const nextConfig: NextConfig = {
   // Every page reads live financial data from SQLite, so nothing is prerendered or cached.
   cacheComponents: false,
   serverExternalPackages: ["tesseract.js", "exceljs", "archiver"],
+  // Runtime file paths are dynamic, so the tracer would otherwise copy local data (receipts!) into the build.
+  outputFileTracingExcludes: {
+    "/**": ["./data/**/*", "./src/app/**/*", "./.env*"],
+  },
   outputFileTracingIncludes: {
-    "/api/uploads": ["./node_modules/@tesseract.js-data/*/4.0.0_best_int/*"],
+    "/**": ["./drizzle/**/*"],
+    // Tesseract starts its worker and WASM core from paths the tracer can't follow.
+    "/api/uploads": [
+      "./node_modules/@tesseract.js-data/*/4.0.0_best_int/*",
+      "./node_modules/tesseract.js/src/**/*",
+      "./node_modules/tesseract.js-core/*.{js,wasm}",
+      "./node_modules/{bmp-js,is-url,node-fetch,regenerator-runtime,wasm-feature-detect,zlibjs,idb-keyval,whatwg-url,tr46,webidl-conversions}/**/*",
+    ],
   },
   experimental: {
     serverActions: { bodySizeLimit: "1mb" },
