@@ -1,12 +1,11 @@
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ExpenseList, type ListItem } from "@/components/expense-list";
-import { EmptyState, Panel, Section } from "@/components/ui/card";
+import type { ListItem } from "@/components/expense-list";
+import { today } from "@/lib/dates";
 import type { Transaction, YearSummary } from "@/lib/stats";
 import { BudgetOverview } from "./budget-overview";
 import { Breakdown } from "./breakdown";
 import { MonthlyChart } from "./monthly-chart";
-import { SpendingHeatmap } from "./spending-heatmap";
+import { SpendingExplorer } from "./spending-explorer";
 
 /** The shared dashboard. The public view leaves out people. */
 export function DashboardBody({
@@ -37,27 +36,15 @@ export function DashboardBody({
 
       <MonthlyChart data={summary.monthly} />
 
-      <SpendingHeatmap days={summary.daily} startsOn={summary.startsOn} endsOn={summary.endsOn} />
-
-      <Section
-        title={t("recent")}
-        description={isPublic ? t("recentPublicHint") : undefined}
-        action={
-          viewAll && (
-            <Link href={viewAll} className="text-[13px] font-medium text-ink-2 hover:text-ink">
-              {t("viewAll")}
-            </Link>
-          )
-        }
-      >
-        <Panel>
-          {transactions.length ? (
-            <ExpenseList items={transactions} href={linkFor} showStatus={!isPublic} />
-          ) : (
-            <EmptyState title={t("nothingYet")} />
-          )}
-        </Panel>
-      </Section>
+      <SpendingExplorer
+        items={transactions.map((item) => ({ ...item, href: linkFor?.(item) }))}
+        days={summary.daily}
+        startsOn={summary.startsOn}
+        endsOn={summary.endsOn}
+        today={today()}
+        showMember={!isPublic}
+        viewAll={viewAll}
+      />
     </div>
   );
 }

@@ -62,7 +62,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             <EmptyState title={t("home.private")} />
           </Panel>
         ) : year ? (
-          <DashboardBody publicView summary={yearSummary(year, { includePeople: false })} transactions={recentTransactions(year, { publicView: true, limit: 25 })} />
+          <DashboardBody publicView summary={yearSummary(year, { includePeople: false })} transactions={recentTransactions(year, { publicView: true })} />
         ) : (
           <Panel>
             <EmptyState title={t("home.noYear")} />

@@ -39,7 +39,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
       />
       <DashboardBody
         summary={yearSummary(year, { includePeople: true })}
-        transactions={recentTransactions(year, { publicView: false, limit: 12 })}
+        transactions={recentTransactions(year, { publicView: false })}
         linkFor={(item) => (user.role === "admin" || item.userId === user.id ? `/expenses/${item.id}` : undefined)}
         viewAll={user.role === "admin" ? "/all-expenses" : undefined}
       />

@@ -131,8 +131,8 @@ export type Transaction = {
  * Recent counted spending. The public version leaves out who spent it and where, since
  * merchants and names can identify members; the description is written to be public.
  */
-export function recentTransactions(year: BudgetYear, { publicView, limit }: { publicView: boolean; limit: number }): Transaction[] {
-  return db
+export function recentTransactions(year: BudgetYear, { publicView, limit }: { publicView: boolean; limit?: number }): Transaction[] {
+  const query = db
     .select({
       id: expenses.id,
       spentOn: expenses.spentOn,
@@ -152,8 +152,7 @@ export function recentTransactions(year: BudgetYear, { publicView, limit }: { pu
     .innerJoin(users, eq(users.id, expenses.userId))
     .leftJoin(events, eq(events.id, expenses.eventId))
     .where(inYear(year))
-    .orderBy(desc(expenses.spentOn), desc(expenses.id))
-    .limit(limit)
-    .all();
+    .orderBy(desc(expenses.spentOn), desc(expenses.id));
+  return limit ? query.limit(limit).all() : query.all();
 }
 
