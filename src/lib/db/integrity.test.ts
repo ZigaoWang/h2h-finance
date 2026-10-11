@@ -81,18 +81,20 @@ describe("reimbursed expenses", () => {
   });
 
   it("go back to approved when the reimbursement is undone, once, with a reason", () => {
-    expect(() => run("update reimbursements set undone_at = 1 where id = 1")).toThrow(/only be undone/);
+    expect(() => run("update reimbursements set undone_at = 1 where id = 1")).toThrow(/undone once with a reason/);
     run("update reimbursements set undone_at = 1, undone_by = 1, undo_reason = 'Wrong person' where id = 1");
     run("update expenses set status = 'approved', reimbursement_id = null where id = 1");
     expect(status(1)).toBe("approved");
-    expect(() => run("update reimbursements set undo_reason = 'x' where id = 1")).toThrow(/only be undone/);
+    expect(() => run("update reimbursements set undo_reason = 'x' where id = 1")).toThrow(/undone once with a reason/);
   });
 });
 
 describe("permanent records", () => {
-  it("reimbursements can't be edited or deleted", () => {
+  it("reimbursements can have their date and note corrected, but not their amount, and are never deleted", () => {
     run("insert into reimbursements (id, user_id, amount_cents, paid_on, paid_by) values (1, 2, 2500, '2026-10-05', 1)");
-    expect(() => run("update reimbursements set amount_cents = 1")).toThrow(/only be undone/);
+    run("update reimbursements set paid_on = '2026-10-06', note = 'Cash' where id = 1");
+    expect(() => run("update reimbursements set amount_cents = 1")).toThrow(/only the date and note/);
+    expect(() => run("update reimbursements set user_id = 1")).toThrow(/only the date and note/);
     expect(() => run("delete from reimbursements")).toThrow(/permanent/);
   });
 
