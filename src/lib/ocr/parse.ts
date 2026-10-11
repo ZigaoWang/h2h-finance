@@ -55,6 +55,11 @@ const LEGAL_NAME_LABELS = /^(商户全称|商户名称|收款方全称|Merchant 
 const NOT_MERCHANT =
   /(支付成功|交易成功|付款成功|当前状态|账单详情|全部账单|余额明细|对此订单有疑问|Payment Successful|Transaction|Details|Successful|^\d|^[-+¥￥])/i;
 
+// Row labels on payment screens. When OCR reads the label column apart from the values,
+// "the line after a label" can be another label, which must never become a value.
+const ROW_LABEL =
+  /^(当前状态|支付时间|付款时间|创建时间|商品|商品说明|商户全称|商户名称|收单机构|支付方式|付款方式|交易类型|交易单号|交易号|商户单号|商家订单号|订单号|对方账户|收款方全称|收款方|标价|市场汇率|优惠|外语凭证|备注|余额|关联账单|账单服务|联系商家)$/;
+
 type Candidate<T> = { value: T; confidence: number };
 type Field<T> = Candidate<T> | undefined;
 
@@ -126,7 +131,7 @@ function findTransactionId(lines: OcrLine[]): Field<string> {
 function cleanMerchant(value: string): string | undefined {
   const cleaned = value.replace(/[>›»|]+$/, "").trim();
   if (cleaned.length < 2 || cleaned.length > 60) return undefined;
-  if (NOT_MERCHANT.test(cleaned)) return undefined;
+  if (NOT_MERCHANT.test(cleaned) || ROW_LABEL.test(cleaned)) return undefined;
   return cleaned;
 }
 

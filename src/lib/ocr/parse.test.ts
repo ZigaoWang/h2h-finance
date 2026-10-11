@@ -221,3 +221,7 @@ describe("voting", () => {
   });
 });
 
+it("never takes another row label as a value when the label column is read on its own", () => {
+  const labelsOnly = lines([[96, "当前状态"], [88, "支付时间"], [93, "商户全称"], [89, "收单机构"], [90, "OK"], [90, "-14.13"]]);
+  expect(combineReadings([labelsOnly]).merchant).toBe("OK");
+});
